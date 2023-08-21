@@ -1,0 +1,35 @@
+name: CI
+on: [push, pull_request]
+jobs:
+  Test:
+    name: ${{matrix.os}}-${{matrix.build_type}}
+    runs-on: ${{matrix.os}}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macOS-latest]
+        build_type: [Debug, Release]
+  
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        submodules: recursive
+    
+    - name: Install Linux dependency
+      if: matrix.os == 'ubuntu-latest'
+      run: |
+        sudo apt-get update
+        sudo apt-get install libgl1-mesa-dev libglu1-mesa-dev libxi-dev libxcursor-dev
+    
+    - name: Configure
+      run: |
+        cmake --version
+        cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{matrix.build_type}}
+
+    - name: Build
+      run: cmake --build ${{github.workspace}}/build --config ${{matrix.build_type}} --use-stderr
+
+    - name: Test
+      working-directory: ${{github.workspace}}/build
+      run: ctest -C ${{matrix.build_type}} --output-on-failure -j2
+      
