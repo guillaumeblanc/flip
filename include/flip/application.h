@@ -29,10 +29,6 @@ class Application {
   const auto& settings() const { return settings_; }
 
  private:
-  // ApplicationCb is the only one allowed to call private interface
-  // functions
-  friend class ApplicationCb;
-
   virtual bool Initialize() { return true; }
 
   enum LoopControl {
@@ -48,5 +44,9 @@ class Application {
   virtual bool Menu() { return true; }
 
   const Settings settings_;
+
+  // ApplicationCb is the only one allowed to call private interface
+  // functions
+  friend class ApplicationCb;
 };
 }  // namespace flip
