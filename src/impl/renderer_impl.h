@@ -1,4 +1,5 @@
 #pragma once
+#include <memory>
 
 #include "flip/renderer.h"
 
@@ -11,23 +12,30 @@ struct CameraView;
 // Base Renderer interface
 class RendererImpl : public Renderer {
  public:
-  RendererImpl() = default;
+  RendererImpl();
   virtual ~RendererImpl();
 
+ protected:
   virtual bool Initialize() override;
   virtual bool Menu() override;
-
-  virtual const HMM_Mat4& GetViewProj() const override { return view_proj_; }
 
   virtual bool DrawCubes(std::span<const HMM_Mat4> _transforms) override;
   virtual bool DrawAxes(std::span<const HMM_Mat4> _transforms) override;
 
- protected:
+  virtual const HMM_Mat4& GetViewProj() const override { return view_proj_; }
+
  private:
   virtual void BeginDefaultPass(const CameraView& _view) override;
   virtual void EndDefaultPass() override;
 
-  HMM_Mat4 view_proj_;  // Temp to avoid including math
+  // Declares a resource container:
+  // - Prevents from including sokol here and messing the header.
+  // - Releases all resources at once
+  struct Resources;
+  std::unique_ptr<Resources> resources_;
+
+  // View projection matrix
+  HMM_Mat4 view_proj_;
 };
 
 }  // namespace flip

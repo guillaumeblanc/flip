@@ -21,13 +21,21 @@
 
 namespace flip {
 
-// Global sg_imgui context
-static sg_imgui_t g_sg_imgui_ctx;
+struct RendererImpl::Resources {
+  // Context for debug-inspection UI for sokol_gfx.h
+  sg_imgui_t sg_imgui_ctx;
 
-static SgBuffer mbuf;  // TEMP
+  // Buffer of transforms used for instanced rendering.
+  SgBuffer transforms;
+};
+
+RendererImpl::RendererImpl() {}
 
 bool RendererImpl::Initialize() {
   bool success = true;
+
+  // Allocates the resource container
+  resources_ = std::make_unique<Resources>();
 
   // Setups sokol gfx
   const auto& app_desc = sapp_query_desc();
@@ -41,15 +49,16 @@ bool RendererImpl::Initialize() {
 
   // Setups sokol-gl debug imgui
   const sg_imgui_desc_t desc = {};
-  sg_imgui_init(&g_sg_imgui_ctx, &desc);
+  sg_imgui_init(&resources_->sg_imgui_ctx, &desc);
 
   return success;
 }
 
 RendererImpl::~RendererImpl() {
-  mbuf.reset();
+  // Deallocates all resources.
+  sg_imgui_discard(&resources_->sg_imgui_ctx);
+  resources_ = nullptr;
 
-  sg_imgui_discard(&g_sg_imgui_ctx);
   sgl_shutdown();
   sg_shutdown();
 }
@@ -80,17 +89,18 @@ void RendererImpl::EndDefaultPass() {
 
 bool RendererImpl::Menu() {
   // Sokol gl debug menu
+  auto& ctx = resources_->sg_imgui_ctx;
   if (ImGui::BeginMenu("Debug")) {
-    ImGui::MenuItem("Buffers", 0, &g_sg_imgui_ctx.buffers.open);
-    ImGui::MenuItem("Images", 0, &g_sg_imgui_ctx.images.open);
-    ImGui::MenuItem("Samplers", 0, &g_sg_imgui_ctx.samplers.open);
-    ImGui::MenuItem("Shaders", 0, &g_sg_imgui_ctx.shaders.open);
-    ImGui::MenuItem("Pipelines", 0, &g_sg_imgui_ctx.pipelines.open);
-    ImGui::MenuItem("Passes", 0, &g_sg_imgui_ctx.passes.open);
-    ImGui::MenuItem("Calls", 0, &g_sg_imgui_ctx.capture.open);
+    ImGui::MenuItem("Buffers", 0, &ctx.buffers.open);
+    ImGui::MenuItem("Images", 0, &ctx.images.open);
+    ImGui::MenuItem("Samplers", 0, &ctx.samplers.open);
+    ImGui::MenuItem("Shaders", 0, &ctx.shaders.open);
+    ImGui::MenuItem("Pipelines", 0, &ctx.pipelines.open);
+    ImGui::MenuItem("Passes", 0, &ctx.passes.open);
+    ImGui::MenuItem("Calls", 0, &ctx.capture.open);
     ImGui::EndMenu();
   }
-  sg_imgui_draw(&g_sg_imgui_ctx);
+  sg_imgui_draw(&ctx);
 
   return true;
 }
@@ -101,7 +111,6 @@ bool RendererImpl::DrawCubes(std::span<const HMM_Mat4> _transforms) {
     SgPipeline pip;
     SgBuffer vbuf;
     SgBuffer ibuf;
-    // SgBuffer mbuf;
     sshape_element_range_t draw;
   } state;
 
@@ -153,26 +162,28 @@ bool RendererImpl::DrawCubes(std::span<const HMM_Mat4> _transforms) {
   // Shader and pipeline object
   state.pip = MakeSgPipeline(sg_pipeline_desc{
       .shader = state.shd,
-      .layout =
-          {.buffers = {sshape_vertex_buffer_layout_state(),
-                       {.stride = sizeof(HMM_Mat4),
-                        .step_func = SG_VERTEXSTEP_PER_INSTANCE}},
-           .attrs = {sshape_position_vertex_attr_state(),
-                     sshape_normal_vertex_attr_state(),
-                     sshape_texcoord_vertex_attr_state(),
-                     sshape_color_vertex_attr_state(),
-                     sg_vertex_attr_state{.buffer_index = 1,
-                                          .offset = 0,
-                                          .format = SG_VERTEXFORMAT_FLOAT4},
-                     sg_vertex_attr_state{.buffer_index = 1,
-                                          .offset = 16,
-                                          .format = SG_VERTEXFORMAT_FLOAT4},
-                     sg_vertex_attr_state{.buffer_index = 1,
-                                          .offset = 32,
-                                          .format = SG_VERTEXFORMAT_FLOAT4},
-                     sg_vertex_attr_state{.buffer_index = 1,
-                                          .offset = 48,
-                                          .format = SG_VERTEXFORMAT_FLOAT4}}},
+      .layout = {.buffers = {sshape_vertex_buffer_layout_state(),
+                             {.stride = sizeof(HMM_Mat4),
+                              .step_func = SG_VERTEXSTEP_PER_INSTANCE}},
+                 .attrs =
+                     {
+                         sshape_position_vertex_attr_state(),
+                         sshape_normal_vertex_attr_state(),
+                         sshape_texcoord_vertex_attr_state(),
+                         sshape_color_vertex_attr_state(),
+                         sg_vertex_attr_state{.buffer_index = 1,
+                                              .offset = 0,
+                                              .format = SG_VERTEXFORMAT_FLOAT4},
+                         sg_vertex_attr_state{.buffer_index = 1,
+                                              .offset = 16,
+                                              .format = SG_VERTEXFORMAT_FLOAT4},
+                         sg_vertex_attr_state{.buffer_index = 1,
+                                              .offset = 32,
+                                              .format = SG_VERTEXFORMAT_FLOAT4},
+                         sg_vertex_attr_state{.buffer_index = 1,
+                                              .offset = 48,
+                                              .format = SG_VERTEXFORMAT_FLOAT4},
+                     }},
       .depth = {.compare = SG_COMPAREFUNC_LESS_EQUAL, .write_enabled = true},
       .index_type = SG_INDEXTYPE_UINT16,
       .cull_mode = SG_CULLMODE_BACK,
@@ -198,17 +209,20 @@ bool RendererImpl::DrawCubes(std::span<const HMM_Mat4> _transforms) {
   sg_apply_pipeline(state.pip);
 
   // Updates instance model matrices
-  if (!mbuf || sg_query_buffer_will_overflow(mbuf, _transforms.size_bytes())) {
-    mbuf = MakeSgBuffer(sg_buffer_desc{.size = _transforms.size_bytes(),
-                                       .usage = SG_USAGE_STREAM,
-                                       .label = "flip:: instance transforms"});
+  auto& transforms_buf = resources_->transforms;
+  if (!transforms_buf ||
+      sg_query_buffer_will_overflow(transforms_buf, _transforms.size_bytes())) {
+    transforms_buf =
+        MakeSgBuffer(sg_buffer_desc{.size = _transforms.size_bytes(),
+                                    .usage = SG_USAGE_STREAM,
+                                    .label = "flip:: transforms"});
   }
-  sg_update_buffer(mbuf, sg_range{.ptr = _transforms.data(),
-                                  .size = _transforms.size_bytes()});
+  sg_update_buffer(transforms_buf, sg_range{.ptr = _transforms.data(),
+                                            .size = _transforms.size_bytes()});
 
   auto bindings = sg_bindings{};
   bindings.vertex_buffers[0] = state.vbuf;
-  bindings.vertex_buffers[1] = mbuf;
+  bindings.vertex_buffers[1] = transforms_buf;
   bindings.index_buffer = state.ibuf;
   sg_apply_bindings(bindings);
 
