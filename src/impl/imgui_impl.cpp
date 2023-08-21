@@ -48,8 +48,8 @@ bool ImguiImpl::Initialize() {
   };
   img_desc.data.subimage[0][0].ptr = font_pixels;
   img_desc.data.subimage[0][0].size = font_width * font_height * 4;
-  font_image_ = sg_make_image(&img_desc);
-  font_sampler_ = sg_make_sampler(sg_sampler_desc{
+  font_image_ = MakeSgImage(img_desc);
+  font_sampler_ = MakeSgSampler(sg_sampler_desc{
       .min_filter = SG_FILTER_LINEAR,
       .mag_filter = SG_FILTER_LINEAR,
       .wrap_u = SG_WRAP_CLAMP_TO_EDGE,

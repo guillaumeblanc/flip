@@ -56,7 +56,7 @@ RendererImpl::~RendererImpl() {
 
 const int kDefaultPassLayer = 0x70501000;
 void RendererImpl::BeginDefaultPass(const CameraView& _view) {
-  // view-projection matrix...
+  // Builds view-projection matrix...
   HMM_Mat4 proj = HMM_Perspective_RH_ZO(
       _view.fov, sapp_widthf() / sapp_heightf(), 0.01f, 100.0f);
   HMM_Mat4 view =
@@ -148,10 +148,10 @@ bool RendererImpl::DrawCubes(std::span<const HMM_Mat4> _transforms) {
       "alpha.y);\n"
       "  frag_color = vec4(ambient, 1.);\n"
       "}\n";
-  state.shd = sg_make_shader(shader_desc);
+  state.shd = MakeSgShader(shader_desc);
 
   // Shader and pipeline object
-  state.pip = sg_make_pipeline(sg_pipeline_desc{
+  state.pip = MakeSgPipeline(sg_pipeline_desc{
       .shader = state.shd,
       .layout =
           {.buffers = {sshape_vertex_buffer_layout_state(),
@@ -192,17 +192,16 @@ bool RendererImpl::DrawCubes(std::span<const HMM_Mat4> _transforms) {
   // One vertex/index-buffer-pair for all shapes
   const sg_buffer_desc vbuf_desc = sshape_vertex_buffer_desc(&buf);
   const sg_buffer_desc ibuf_desc = sshape_index_buffer_desc(&buf);
-  state.vbuf = sg_make_buffer(&vbuf_desc);
-  state.ibuf = sg_make_buffer(&ibuf_desc);
+  state.vbuf = MakeSgBuffer(vbuf_desc);
+  state.ibuf = MakeSgBuffer(ibuf_desc);
 
   sg_apply_pipeline(state.pip);
 
   // Updates instance model matrices
   if (!mbuf || sg_query_buffer_will_overflow(mbuf, _transforms.size_bytes())) {
-    mbuf =
-        sg_make_buffer(sg_buffer_desc{.size = _transforms.size_bytes(),
-                                      .usage = SG_USAGE_STREAM,
-                                      .label = "flip:: instance transforms"});
+    mbuf = MakeSgBuffer(sg_buffer_desc{.size = _transforms.size_bytes(),
+                                       .usage = SG_USAGE_STREAM,
+                                       .label = "flip:: instance transforms"});
   }
   sg_update_buffer(mbuf, sg_range{.ptr = _transforms.data(),
                                   .size = _transforms.size_bytes()});
