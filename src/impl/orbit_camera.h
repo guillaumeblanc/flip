@@ -37,9 +37,6 @@ class OrbitCamera : public Camera {
   float latitude_ = .2f;
   float longitude_ = 0.f;
   CameraView camera_view_ = {.fov = HMM_PI32 / 2.f};
-
-  bool lctrl_down_ = false;
-  bool lshift_down_ = false;
 };
 
 }  // namespace flip

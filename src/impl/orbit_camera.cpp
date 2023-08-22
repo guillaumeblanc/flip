@@ -28,7 +28,10 @@ bool OrbitCamera::Update(float _time, float _dt, float _inv_dt) {
 
 bool OrbitCamera::Menu() {
   if (ImGui::BeginMenu("Camera")) {
-    ImGui::SliderAngle("Field of view", &camera_view_.fov, 60, 120);
+    ImGui::SliderAngle("Field of view", &camera_view_.fov, 40, 140);
+    ImGui::LabelText("Controls",
+                     "- LMB: Orbit\n- LMB + Shift: Pan\n- LMB + CTRL: Move "
+                     "horizontally\n- Scroll: Zoom");
     ImGui::EndMenu();
   }
   return true;
@@ -96,23 +99,15 @@ bool OrbitCamera::Event(const sapp_event& _event) {
     }
     case SAPP_EVENTTYPE_MOUSE_MOVE:
       if (sapp_mouse_locked()) {
-        if (lctrl_down_) {
+        if (_event.modifiers & SAPP_MODIFIER_CTRL) {
           return Move(_event.mouse_dx, _event.mouse_dy);
-        } else if (lshift_down_) {
+        } else if (_event.modifiers & SAPP_MODIFIER_SHIFT) {
           return Pan(_event.mouse_dx, _event.mouse_dy);
         } else {
           return Orbit(_event.mouse_dx, _event.mouse_dy);
         }
       }
       break;
-    case SAPP_EVENTTYPE_KEY_DOWN: {
-      lctrl_down_ |= _event.key_code == SAPP_KEYCODE_LEFT_CONTROL;
-      lshift_down_ |= _event.key_code == SAPP_KEYCODE_LEFT_SHIFT;
-    } break;
-    case SAPP_EVENTTYPE_KEY_UP: {
-      lctrl_down_ &= _event.key_code != SAPP_KEYCODE_LEFT_CONTROL;
-      lshift_down_ &= _event.key_code != SAPP_KEYCODE_LEFT_SHIFT;
-    } break;
     default:
       break;
   }
