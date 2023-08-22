@@ -44,20 +44,23 @@ endif()
 # Application
 add_library(flip
   ${PROJECT_SOURCE_DIR}/include/flip/application.h
-  application.cpp
   ${PROJECT_SOURCE_DIR}/include/flip/camera.h
-  impl/orbit_camera.h
-  impl/orbit_camera.cpp
-  ${PROJECT_SOURCE_DIR}/include/flip/renderer.h
-  impl/renderer_impl.h
-  impl/renderer_impl.cpp
   ${PROJECT_SOURCE_DIR}/include/flip/imgui.h
+  ${PROJECT_SOURCE_DIR}/include/flip/renderer.h
+  ${PROJECT_SOURCE_DIR}/include/flip/utils/keyboard.h
+  application.cpp
   impl/imgui_font.h
   impl/imgui_impl.h
   impl/imgui_impl.cpp
   impl/factory.h
   impl/factory.cpp
+  impl/orbit_camera.h
+  impl/orbit_camera.cpp
+  impl/renderer_impl.h
+  impl/renderer_impl.cpp
+  impl/sokol_gfx_utils.h
   impl/shapes.h
-  impl/shapes.cpp)
+  impl/shapes.cpp
+  utils/keyboard.cpp)
 target_include_directories(flip PUBLIC ${PROJECT_SOURCE_DIR}/include)
 target_link_libraries(flip sokol hmm)

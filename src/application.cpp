@@ -28,7 +28,7 @@ class ApplicationCb {
 
   int Run() {
     if (!headless()) {
-      const auto settings = application_->settings();
+      const auto& settings = application_->settings();
 
       // Setup and run sapp
       sapp_run(sapp_desc{
@@ -104,6 +104,7 @@ class ApplicationCb {
       bool captured = false;  // Only fw event if not captured
       captured = !captured && imgui_->Event(_event);
       captured = !captured && camera_->Event(_event);
+      captured = !captured && application_->Event(_event);
     }
   }
 
@@ -117,7 +118,7 @@ class ApplicationCb {
 
     // Updates application
     const auto control = application_->Update(time, dt, inv_dt);
-    success &= control != Application::kBreakFailure;
+    success &= control != Application::LoopControl::kBreakFailure;
 
     // Renders application
     if (renderer_) {
@@ -125,7 +126,7 @@ class ApplicationCb {
     }
 
     // Manages exit
-    if (!success || control != Application::kContinue) {
+    if (!success || control != Application::LoopControl::kContinue) {
       RequestExit(success);
     }
   }
@@ -144,6 +145,9 @@ class ApplicationCb {
 
       {  // Imgui frame raii
         auto imgui_frame = Imgui::Frame(*imgui_);
+
+        // Gui
+        success &= application_->Gui();
 
         {  // Imgui menu raii
           auto menu = Imgui::MainMenu(imgui_frame);

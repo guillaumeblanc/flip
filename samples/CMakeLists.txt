@@ -6,3 +6,7 @@ add_test(NAME minimal COMMAND minimal "headless=true")
 add_executable(cubes cubes.cpp)
 target_link_libraries(cubes flip)
 add_test(NAME cubes COMMAND cubes "headless=true")
+
+add_executable(input input.cpp)
+target_link_libraries(input flip)
+add_test(NAME input COMMAND input "headless=true")
