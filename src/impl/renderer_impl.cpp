@@ -2,6 +2,7 @@
 
 #include "flip/camera.h"
 #include "imgui/imgui.h"
+#include "shapes.h"
 
 // Sokol library, do not sort includes
 // clang-format off
@@ -27,6 +28,9 @@ struct RendererImpl::Resources {
 
   // Buffer of transforms used for instanced rendering.
   SgBuffer transforms;
+
+  // Primitive shapes
+  Shapes shapes;
 };
 
 RendererImpl::RendererImpl() {}
@@ -50,6 +54,9 @@ bool RendererImpl::Initialize() {
   // Setups sokol-gl debug imgui
   const sg_imgui_desc_t desc = {};
   sg_imgui_init(&resources_->sg_imgui_ctx, &desc);
+
+  // Initialize shape resources
+  resources_->shapes.Initialize();
 
   return success;
 }
@@ -105,109 +112,8 @@ bool RendererImpl::Menu() {
   return true;
 }
 
-bool RendererImpl::DrawCubes(std::span<const HMM_Mat4> _transforms) {
-  struct S {
-    SgShader shd;
-    SgPipeline pip;
-    SgBuffer vbuf;
-    SgBuffer ibuf;
-    sshape_element_range_t draw;
-  } state;
-
-  struct Uniforms {
-    HMM_Mat4 vp;
-  };
-
-  // Create shader
-  auto shader_desc = sg_shader_desc{};
-  shader_desc.vs.source =
-      "#version 330\n"
-      "uniform mat4 vp;\n"
-      "layout(location=0) in vec4 position;\n"
-      "layout(location=1) in vec3 normal;\n"
-      "layout(location=2) in vec2 texcoord;\n"
-      "layout(location=3) in vec4 color;\n"
-      "layout(location=4) in mat4 model;\n"
-      "out vec3 vertex_normal;\n"
-      "out vec4 vertex_color;\n"
-      "void main() {\n"
-      "  gl_Position = vp * model * position;\n"
-      "  mat3 cross_matrix = mat3(\n"
-      "    cross(model[1].xyz, model[2].xyz),\n"
-      "    cross(model[2].xyz, model[0].xyz),\n"
-      "    cross(model[0].xyz, model[1].xyz));\n"
-      "  float invdet = 1.0 / dot(cross_matrix[2], model[2].xyz);\n"
-      "  mat3 normal_matrix = cross_matrix * invdet;\n"
-      "  vertex_normal = normal_matrix * normal;\n"
-      "  vertex_color = color;\n"
-      "}\n";
-  shader_desc.vs.uniform_blocks[0] = {
-      .size = sizeof(Uniforms),
-      .uniforms = {{.name = "vp", .type = SG_UNIFORMTYPE_MAT4}}};
-  shader_desc.fs.source =
-      "#version 330\n"
-      "in vec3 vertex_normal;\n"
-      "in vec4 vertex_color;\n"
-      "out vec4 frag_color;\n"
-      "void main() {\n"
-      "  vec3 normal = normalize(vertex_normal);\n"
-      "  vec3 alpha = (normal + 1.) * .5;\n"
-      "  vec2 bt = mix(vec2(.3, .7), vec2(.4, .8), alpha.xz);\n"
-      "  vec3 ambient = mix(vec3(bt.x, .3, bt.x), vec3(bt.y, .8, bt.y), "
-      "alpha.y);\n"
-      "  frag_color = vec4(ambient, 1.);\n"
-      "}\n";
-  state.shd = MakeSgShader(shader_desc);
-
-  // Shader and pipeline object
-  state.pip = MakeSgPipeline(sg_pipeline_desc{
-      .shader = state.shd,
-      .layout = {.buffers = {sshape_vertex_buffer_layout_state(),
-                             {.stride = sizeof(HMM_Mat4),
-                              .step_func = SG_VERTEXSTEP_PER_INSTANCE}},
-                 .attrs =
-                     {
-                         sshape_position_vertex_attr_state(),
-                         sshape_normal_vertex_attr_state(),
-                         sshape_texcoord_vertex_attr_state(),
-                         sshape_color_vertex_attr_state(),
-                         sg_vertex_attr_state{.buffer_index = 1,
-                                              .offset = 0,
-                                              .format = SG_VERTEXFORMAT_FLOAT4},
-                         sg_vertex_attr_state{.buffer_index = 1,
-                                              .offset = 16,
-                                              .format = SG_VERTEXFORMAT_FLOAT4},
-                         sg_vertex_attr_state{.buffer_index = 1,
-                                              .offset = 32,
-                                              .format = SG_VERTEXFORMAT_FLOAT4},
-                         sg_vertex_attr_state{.buffer_index = 1,
-                                              .offset = 48,
-                                              .format = SG_VERTEXFORMAT_FLOAT4},
-                     }},
-      .depth = {.compare = SG_COMPAREFUNC_LESS_EQUAL, .write_enabled = true},
-      .index_type = SG_INDEXTYPE_UINT16,
-      .cull_mode = SG_CULLMODE_BACK,
-  });
-
-  // Generate shape geometries
-  sshape_vertex_t vertices[24];
-  uint16_t indices[36];
-  auto buf = sshape_buffer_t{
-      .vertices = {.buffer = SSHAPE_RANGE(vertices)},
-      .indices = {.buffer = SSHAPE_RANGE(indices)},
-  };
-  auto box = sshape_box_t{.width = 1.f, .height = 1.f, .depth = 1.f};
-  buf = sshape_build_box(&buf, &box);
-  state.draw = sshape_element_range(&buf);
-
-  // One vertex/index-buffer-pair for all shapes
-  const sg_buffer_desc vbuf_desc = sshape_vertex_buffer_desc(&buf);
-  const sg_buffer_desc ibuf_desc = sshape_index_buffer_desc(&buf);
-  state.vbuf = MakeSgBuffer(vbuf_desc);
-  state.ibuf = MakeSgBuffer(ibuf_desc);
-
-  sg_apply_pipeline(state.pip);
-
+bool RendererImpl::DrawShape(Shape _shape,
+                             std::span<const HMM_Mat4> _transforms) {
   // Updates instance model matrices
   auto& transforms_buf = resources_->transforms;
   if (!transforms_buf ||
@@ -219,19 +125,8 @@ bool RendererImpl::DrawCubes(std::span<const HMM_Mat4> _transforms) {
   }
   sg_update_buffer(transforms_buf, sg_range{.ptr = _transforms.data(),
                                             .size = _transforms.size_bytes()});
-
-  auto bindings = sg_bindings{};
-  bindings.vertex_buffers[0] = state.vbuf;
-  bindings.vertex_buffers[1] = transforms_buf;
-  bindings.index_buffer = state.ibuf;
-  sg_apply_bindings(bindings);
-
-  // per shape model-view-projection matrix
-  const auto uniforms = Uniforms{.vp = view_proj_};
-  sg_apply_uniforms(SG_SHADERSTAGE_VS, 0, SG_RANGE(uniforms));
-  sg_draw(state.draw.base_element, state.draw.num_elements, _transforms.size());
-
-  return true;
+  return resources_->shapes.Draw(_shape, _transforms.size(), transforms_buf,
+                                 view_proj_);
 }
 
 bool RendererImpl::DrawAxes(std::span<const HMM_Mat4> _transforms) {

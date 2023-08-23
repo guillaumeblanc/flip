@@ -37,7 +37,7 @@ class Cubes : public flip::Application {
     // Letters
     const auto nlines = sizeof(kFlip) / sizeof(kFlip[0]);
     const float xoffset = std::strlen(kFlip[0]) / -2.f;
-    const float yoffset = nlines;
+    const float yoffset = nlines - 1;
     auto pos = HMM_Vec3{xoffset, yoffset, 0};
     for (auto line = kFlip; line < kFlip + nlines;
          ++line, pos.X = xoffset, pos.Y -= 1) {
@@ -47,14 +47,16 @@ class Cubes : public flip::Application {
         }
       }
     }
+
     // Floor
     if (show_floor_) {
-      transforms_.push_back(HMM_Scale(HMM_Vec3{50, 1, 50}));
+      transforms_.push_back(HMM_Scale(HMM_Vec3{50, 1, 50}) *
+                            HMM_Translate(HMM_Vec3{-.5f, -1.f, -.5f}));
     }
   }
 
   virtual bool Display(flip::Renderer& _renderer) override {
-    return _renderer.DrawCubes(transforms_);
+    return _renderer.DrawShape(flip::Renderer::kCube, transforms_);
   }
 
   virtual bool Menu() override {

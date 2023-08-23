@@ -19,7 +19,8 @@ class RendererImpl : public Renderer {
   virtual bool Initialize() override;
   virtual bool Menu() override;
 
-  virtual bool DrawCubes(std::span<const HMM_Mat4> _transforms) override;
+  virtual bool DrawShape(Shape _shape,
+                         std::span<const HMM_Mat4> _transforms) override;
   virtual bool DrawAxes(std::span<const HMM_Mat4> _transforms) override;
 
   virtual const HMM_Mat4& GetViewProj() const override { return view_proj_; }

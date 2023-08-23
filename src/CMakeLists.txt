@@ -56,6 +56,8 @@ add_library(flip
   impl/imgui_impl.h
   impl/imgui_impl.cpp
   impl/factory.h
-  impl/factory.cpp)
+  impl/factory.cpp
+  impl/shapes.h
+  impl/shapes.cpp)
 target_include_directories(flip PUBLIC ${PROJECT_SOURCE_DIR}/include)
 target_link_libraries(flip sokol hmm)
