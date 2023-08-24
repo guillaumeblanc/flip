@@ -1,9 +1,11 @@
 #pragma once
 
+#include <span>
 #include <utility>
 
 #include "sokol/sokol_gfx.h"
 
+// unique_ptr like sokol resource object.
 template <typename _Id, void (*_Destroyer)(_Id)>
 class SgResource {
  public:
@@ -67,3 +69,18 @@ using SgPass = SgResource<sg_pass, &sg_destroy_pass>;
 inline SgPass MakeSgPass(const sg_pass_desc& _desc) {
   return SgPass(sg_make_pass(&_desc));
 }
+
+// Represent a buffer with that can be partial (ex dynamic/appended).
+struct BufferBinding {
+  sg_buffer id;
+  int offset;
+};
+
+// Dynamic buffer, which size will stabilize to the minimum required each frame.
+class SgDynamicBuffer {
+ public:
+  BufferBinding Append(std::span<const std::byte> _data);
+
+ private:
+  SgBuffer buffer_;
+};

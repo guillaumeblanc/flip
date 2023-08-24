@@ -27,7 +27,7 @@ struct RendererImpl::Resources {
   sg_imgui_t sg_imgui_ctx;
 
   // Buffer of transforms used for instanced rendering.
-  SgBuffer transforms;
+  SgDynamicBuffer transforms_buffer;
 
   // Primitive shapes
   Shapes shapes;
@@ -114,18 +114,12 @@ bool RendererImpl::Menu() {
 
 bool RendererImpl::DrawShape(Shape _shape,
                              std::span<const HMM_Mat4> _transforms) {
-  // Updates instance model matrices
-  auto& transforms_buf = resources_->transforms;
-  if (!transforms_buf ||
-      sg_query_buffer_will_overflow(transforms_buf, _transforms.size_bytes())) {
-    transforms_buf =
-        MakeSgBuffer(sg_buffer_desc{.size = _transforms.size_bytes(),
-                                    .usage = SG_USAGE_STREAM,
-                                    .label = "flip:: transforms"});
-  }
-  sg_update_buffer(transforms_buf, sg_range{.ptr = _transforms.data(),
-                                            .size = _transforms.size_bytes()});
-  return resources_->shapes.Draw(_shape, _transforms.size(), transforms_buf,
+  // Updates instance model matrices buffer
+  auto buffer_binding = resources_->transforms_buffer.Append(
+      std::as_bytes(std::span{_transforms}));
+
+  // Draw
+  return resources_->shapes.Draw(_shape, _transforms.size(), buffer_binding,
                                  view_proj_);
 }
 

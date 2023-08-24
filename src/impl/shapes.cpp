@@ -147,27 +147,31 @@ bool Shapes::Initialize() {
   draws_[Renderer::Shape::kTorus] = to_range(sshape_element_range(&buf));
   assert(buf.valid);
 
-  const sg_buffer_desc vbuf_desc = sshape_vertex_buffer_desc(&buf);
-  const sg_buffer_desc ibuf_desc = sshape_index_buffer_desc(&buf);
+  auto vbuf_desc = sshape_vertex_buffer_desc(&buf);
+  vbuf_desc.label = "flip: shapes vertex buffer";
   vertex_buffer_ = MakeSgBuffer(vbuf_desc);
+
+  auto ibuf_desc = sshape_index_buffer_desc(&buf);
+  ibuf_desc.label = "flip: shapes index buffer";
   index_buffer_ = MakeSgBuffer(ibuf_desc);
 
-  return success;
+  return buf.valid;
 }
 
-bool Shapes::Draw(flip::Renderer::Shape _shape, int _intances,
-                  const sg_buffer& transforms, HMM_Mat4& _view_proj) {
+bool Shapes::Draw(Renderer::Shape _shape, int _intances,
+                  const BufferBinding& _models, HMM_Mat4& _view_proj) {
   sg_apply_pipeline(pipeline_);
 
   auto bindings = sg_bindings{};
   bindings.vertex_buffers[0] = vertex_buffer_;
-  bindings.vertex_buffers[1] = transforms;
+  bindings.vertex_buffers[1] = _models.id;
+  bindings.vertex_buffer_offsets[1] = _models.offset;
   bindings.index_buffer = index_buffer_;
   sg_apply_bindings(bindings);
 
-  // per shape model-view-projection matrix
   const auto uniforms = Uniforms{.vp = _view_proj};
   sg_apply_uniforms(SG_SHADERSTAGE_VS, 0, SG_RANGE(uniforms));
+
   sg_draw(draws_[_shape].first, draws_[_shape].second, _intances);
   return true;
 }

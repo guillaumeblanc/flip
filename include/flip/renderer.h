@@ -60,7 +60,8 @@ class Renderer {
     kCube,      // Size of (1, 1, 1) with origin in the corner (0, 0, 0).
     kSphere,    // Radius of .5, with origin at sphere center (.5, .5, .5)
     kCylinder,  // Radius of .5, with origin at center of bottom disk
-    kTorus      // Radius of .4, ring radius of .1, with origin at torus center
+    kTorus,     // Radius of .4, ring radius of .1, with origin at torus center
+    kCount
   };
   virtual bool DrawShape(Shape _shape,
                          std::span<const HMM_Mat4> _transforms) = 0;

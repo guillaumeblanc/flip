@@ -14,8 +14,8 @@ class Shapes {
 
   bool Initialize();
 
-  bool Draw(flip::Renderer::Shape _shape, int _intances,
-            const sg_buffer& transforms, HMM_Mat4& _view_proj);
+  bool Draw(Renderer::Shape _shape, int _intances, const BufferBinding& _models,
+            HMM_Mat4& _view_proj);
 
  protected:
  private:
@@ -27,7 +27,7 @@ class Shapes {
   SgBuffer index_buffer_;
 
   // Pairs of base offset and num elements.
-  std::array<std::pair<int, int>, 5> draws_;
+  std::array<std::pair<int, int>, Renderer::Shape::kCount> draws_;
 };
 
 }  // namespace flip

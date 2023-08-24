@@ -59,6 +59,7 @@ add_library(flip
   impl/renderer_impl.h
   impl/renderer_impl.cpp
   impl/sokol_gfx_utils.h
+  impl/sokol_gfx_utils.cpp
   impl/shapes.h
   impl/shapes.cpp
   utils/keyboard.cpp)
