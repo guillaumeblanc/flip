@@ -5,6 +5,8 @@
 
 #include "sokol/sokol_gfx.h"
 
+namespace flip {
+
 // unique_ptr like sokol resource object.
 template <typename _Id, void (*_Destroyer)(_Id)>
 class SgResource {
@@ -84,3 +86,5 @@ class SgDynamicBuffer {
  private:
   SgBuffer buffer_;
 };
+
+}  // namespace flip

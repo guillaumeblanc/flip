@@ -2,7 +2,7 @@
 #include <array>
 
 #include "flip/renderer.h"
-#include "sokol_gfx_utils.h"
+#include "flip/utils/sokol_gfx.h"
 
 namespace flip {
 

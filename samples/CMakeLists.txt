@@ -10,3 +10,7 @@ add_test(NAME cubes COMMAND cubes "headless=true")
 add_executable(input input.cpp)
 target_link_libraries(input flip)
 add_test(NAME input COMMAND input "headless=true")
+
+add_executable(custom custom.cpp)
+target_link_libraries(custom flip)
+add_test(NAME custom COMMAND custom "headless=true")

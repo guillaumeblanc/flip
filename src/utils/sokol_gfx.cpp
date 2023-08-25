@@ -1,5 +1,6 @@
-#include "sokol_gfx_utils.h"
+#include "flip/utils/sokol_gfx.h"
 
+namespace flip {
 BufferBinding SgDynamicBuffer::Append(std::span<const std::byte> _data) {
   if (!buffer_ || sg_query_buffer_will_overflow(buffer_, _data.size_bytes())) {
     // Reallocates the buffer to be able to store enough data for the frame.
@@ -16,3 +17,4 @@ BufferBinding SgDynamicBuffer::Append(std::span<const std::byte> _data) {
       .offset = sg_append_buffer(
           buffer_, sg_range{.ptr = _data.data(), .size = _data.size_bytes()})};
 }
+}  // namespace flip

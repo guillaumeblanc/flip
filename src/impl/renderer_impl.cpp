@@ -1,9 +1,5 @@
 #include "renderer_impl.h"
 
-#include "flip/camera.h"
-#include "imgui/imgui.h"
-#include "shapes.h"
-
 // Sokol library, do not sort includes
 // clang-format off
 #include "sokol/sokol_app.h"
@@ -15,10 +11,16 @@
 #include "sokol/util/sokol_shape.h"
 // clang-format on
 
-#include "sokol_gfx_utils.h"
+// Dear ImGui
+#include "imgui/imgui.h"
 
 // math
 #include "hmm/HandmadeMath.h"
+
+// flip
+#include "flip/camera.h"
+#include "flip/utils/sokol_gfx.h"
+#include "shapes.h"
 
 namespace flip {
 

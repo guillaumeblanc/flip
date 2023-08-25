@@ -48,6 +48,7 @@ add_library(flip
   ${PROJECT_SOURCE_DIR}/include/flip/imgui.h
   ${PROJECT_SOURCE_DIR}/include/flip/renderer.h
   ${PROJECT_SOURCE_DIR}/include/flip/utils/keyboard.h
+  ${PROJECT_SOURCE_DIR}/include/flip/utils/sokol_gfx.h
   application.cpp
   impl/imgui_font.h
   impl/imgui_impl.h
@@ -58,10 +59,9 @@ add_library(flip
   impl/orbit_camera.cpp
   impl/renderer_impl.h
   impl/renderer_impl.cpp
-  impl/sokol_gfx_utils.h
-  impl/sokol_gfx_utils.cpp
   impl/shapes.h
   impl/shapes.cpp
-  utils/keyboard.cpp)
+  utils/keyboard.cpp
+  utils/sokol_gfx.cpp)
 target_include_directories(flip PUBLIC ${PROJECT_SOURCE_DIR}/include)
 target_link_libraries(flip sokol hmm)

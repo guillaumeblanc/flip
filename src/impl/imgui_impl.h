@@ -1,7 +1,7 @@
 #pragma once
 
 #include "flip/imgui.h"
-#include "sokol_gfx_utils.h"
+#include "flip/utils/sokol_gfx.h"
 
 namespace flip {
 
