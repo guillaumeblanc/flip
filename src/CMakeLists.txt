@@ -49,7 +49,7 @@ add_library(flip
   ${PROJECT_SOURCE_DIR}/include/flip/renderer.h
   ${PROJECT_SOURCE_DIR}/include/flip/utils/keyboard.h
   ${PROJECT_SOURCE_DIR}/include/flip/utils/sokol_gfx.h
-  application.cpp
+  main.cpp
   impl/imgui_font.h
   impl/imgui_impl.h
   impl/imgui_impl.cpp

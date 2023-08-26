@@ -1,8 +1,7 @@
-#include "flip/application.h"
-
 #include <cstdlib>
 #include <memory>
 
+#include "flip/application.h"
 #include "flip/camera.h"
 #include "flip/imgui.h"
 #include "flip/renderer.h"
