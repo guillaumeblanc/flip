@@ -39,7 +39,7 @@ class Application {
   };
 
  private:
-  virtual bool Initialize() { return true; }
+  virtual bool Initialize(bool _headless) { return true; }
 
   virtual LoopControl Update(float _time, float _dt, float _inv_dt) {
     return LoopControl::kContinue;

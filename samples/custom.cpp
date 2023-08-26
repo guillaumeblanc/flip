@@ -8,8 +8,12 @@ class Custom : public flip::Application {
  public:
   Custom() : flip::Application(Settings{.title = "Custom"}) {}
 
-  virtual bool Initialize() override {  // A vertex buffer
-    const float vertices[] = {          // positions       // color
+  virtual bool Initialize(bool _headless) override {
+    if (_headless) {
+      return true;
+    }
+    // A vertex buffer
+    const float vertices[] = {// positions       // color
                               0.f,   10.f,  0.f, 0.f, 1.f, 0.f, 1.f,
                               10.f,  -10.f, 0.f, 1.f, 0.f, 0.f, 1.f,
                               -10.f, -10.f, 0.f, 0.f, 0.f, 1.f, 1.f};

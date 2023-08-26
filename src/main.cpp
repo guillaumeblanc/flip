@@ -77,7 +77,7 @@ class ApplicationCb {
       success &= camera_->Initialize();
     }
 
-    success &= application_->Initialize();
+    success &= application_->Initialize(headless());
 
     if (!success) {
       RequestExit(success);
