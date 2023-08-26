@@ -17,6 +17,7 @@ class RendererImpl : public Renderer {
 
  protected:
   virtual bool Initialize() override;
+  virtual bool Event(const sapp_event& _event) override;
   virtual bool Menu() override;
 
   virtual bool DrawShape(Shape _shape,
@@ -24,10 +25,13 @@ class RendererImpl : public Renderer {
   virtual bool DrawAxes(std::span<const HMM_Mat4> _transforms) override;
 
   virtual const HMM_Mat4& GetViewProj() const override { return view_proj_; }
+  virtual Imgui& imgui() const override { return *imgui_; }
 
  private:
   virtual void BeginDefaultPass(const CameraView& _view) override;
   virtual void EndDefaultPass() override;
+
+  std::unique_ptr<Imgui> imgui_;
 
   // Declares a resource container:
   // - Prevents from including sokol here and messing the header.

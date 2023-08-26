@@ -19,7 +19,6 @@ class ApplicationCb {
  public:
   ApplicationCb(bool _headless)
       : renderer_(_headless ? nullptr : Factory().InstantiateRenderer()),
-        imgui_(_headless ? nullptr : Factory().InstantiateImgui()),
         camera_(_headless ? nullptr : Factory().InstantiateCamera()),
         application_(InstantiateApplication()) {}
 
@@ -75,7 +74,6 @@ class ApplicationCb {
 
     if (!headless()) {
       success &= renderer_->Initialize();
-      success &= imgui_->Initialize();
       success &= camera_->Initialize();
     }
 
@@ -89,7 +87,6 @@ class ApplicationCb {
   void Cleanup() {
     // Release resources (symmetrical to constructor & initialize)
     application_ = nullptr;
-    imgui_ = nullptr;
     camera_ = nullptr;
     renderer_ = nullptr;
 
@@ -101,7 +98,7 @@ class ApplicationCb {
   void Event(const sapp_event& _event) {
     if (!headless()) {
       bool captured = false;  // Only fw event if not captured
-      captured = !captured && imgui_->Event(_event);
+      captured = !captured && renderer_->Event(_event);
       captured = !captured && camera_->Event(_event);
       captured = !captured && application_->Event(_event);
     }
@@ -143,7 +140,7 @@ class ApplicationCb {
       success &= application_->Display(*renderer_);
 
       {  // Imgui frame raii
-        auto imgui_frame = Imgui::Frame(*imgui_);
+        auto imgui_frame = Imgui::Frame(renderer_->imgui());
 
         // Gui
         success &= application_->Gui();
@@ -170,7 +167,6 @@ class ApplicationCb {
  private:
   // Resources, order is important for destruction order
   std::unique_ptr<Renderer> renderer_;
-  std::unique_ptr<Imgui> imgui_;
   std::unique_ptr<Camera> camera_;
   std::unique_ptr<Application> application_;
 

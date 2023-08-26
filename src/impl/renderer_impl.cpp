@@ -18,7 +18,9 @@
 #include "hmm/HandmadeMath.h"
 
 // flip
+#include "factory.h"
 #include "flip/camera.h"
+#include "flip/imgui.h"
 #include "flip/utils/sokol_gfx.h"
 #include "shapes.h"
 
@@ -35,7 +37,7 @@ struct RendererImpl::Resources {
   Shapes shapes;
 };
 
-RendererImpl::RendererImpl() {}
+RendererImpl::RendererImpl() : imgui_(Factory().InstantiateImgui()) {}
 
 bool RendererImpl::Initialize() {
   bool success = true;
@@ -53,12 +55,15 @@ bool RendererImpl::Initialize() {
   sgl_setup(sgl_desc_t{.logger = {.func = app_desc.logger.func,
                                   .user_data = app_desc.logger.user_data}});
 
+  // Setup imgui
+  success &= imgui_->Initialize();
+
   // Setups sokol-gl debug imgui
   const sg_imgui_desc_t desc = {};
   sg_imgui_init(&resources_->sg_imgui_ctx, &desc);
 
   // Initialize shape resources
-  resources_->shapes.Initialize();
+  success &= resources_->shapes.Initialize();
 
   return success;
 }
@@ -66,10 +71,15 @@ bool RendererImpl::Initialize() {
 RendererImpl::~RendererImpl() {
   // Deallocates all resources.
   sg_imgui_discard(&resources_->sg_imgui_ctx);
+  imgui_ = nullptr;
   resources_ = nullptr;
 
   sgl_shutdown();
   sg_shutdown();
+}
+
+bool RendererImpl::Event(const sapp_event& _event) {
+  return imgui_->Event(_event);
 }
 
 const int kDefaultPassLayer = 0x70501000;

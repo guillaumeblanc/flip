@@ -2,9 +2,11 @@
 #include <span>
 
 union HMM_Mat4;
+struct sapp_event;
 
 namespace flip {
 struct CameraView;
+class Imgui;
 
 // Helper functions to construct a span from a single object.
 template <typename _T>
@@ -38,6 +40,7 @@ class Renderer {
   virtual ~Renderer() = default;
 
   virtual bool Initialize() { return true; }
+  virtual bool Event(const sapp_event& _event) { return false; }
   virtual bool Menu() { return true; }
 
   // RAII to begin/end the default rendering pass
@@ -54,6 +57,8 @@ class Renderer {
   };
 
   virtual const HMM_Mat4& GetViewProj() const = 0;
+
+  virtual Imgui& imgui() const = 0;
 
   enum Shape {
     kPlane,     // Size of (1, 0, 1), with origin in the corner (0, 0, 0).
