@@ -134,7 +134,8 @@ class ApplicationCb {
     {  // Default Rendering pass raii
       auto pass = Renderer::DefaultPass(*renderer_, camera_->GetCameraView());
 
-      success &= renderer_->DrawAxes(make_span(HMM_M4D(1)));
+      success &= renderer_->DrawGrid(HMM_M4D(1), 20);
+      success &= renderer_->DrawAxis(HMM_M4D(1));
 
       // Overloaded application display
       success &= application_->Display(*renderer_);

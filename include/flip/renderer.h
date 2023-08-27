@@ -8,16 +8,6 @@ namespace flip {
 struct CameraView;
 class Imgui;
 
-// Helper functions to construct a span from a single object.
-template <typename _T>
-auto make_span(const _T& _t) {
-  return std::span<const _T>{&_t, 1};
-}
-template <typename _T>
-auto make_span(_T& _t) {
-  return std::span<_T>{&_t, 1};
-}
-
 // Defines render Color structure.
 struct Color {
   float r, g, b, a;
@@ -68,9 +58,22 @@ class Renderer {
     kTorus,     // Radius of .4, ring radius of .1, with origin at torus center
     kCount
   };
-  virtual bool DrawShape(Shape _shape,
-                         std::span<const HMM_Mat4> _transforms) = 0;
+
+  virtual bool DrawShape(const HMM_Mat4& _transform, Shape _shape) {
+    return DrawShapes({&_transform, 1}, _shape);
+  }
+  virtual bool DrawShapes(std::span<const HMM_Mat4> _transforms,
+                          Shape _shape) = 0;
+
+  virtual bool DrawAxis(const HMM_Mat4& _transform) {
+    return DrawAxes({&_transform, 1});
+  }
   virtual bool DrawAxes(std::span<const HMM_Mat4> _transforms) = 0;
+
+  virtual bool DrawGrid(const HMM_Mat4& _transform, int _cells) {
+    return DrawGrids({&_transform, 1}, _cells);
+  }
+  virtual bool DrawGrids(std::span<const HMM_Mat4> _transforms, int _cells) = 0;
 
  protected:
  private:
