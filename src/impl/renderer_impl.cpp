@@ -124,8 +124,8 @@ bool RendererImpl::Menu() {
   return true;
 }
 
-bool RendererImpl::DrawShape(Shape _shape,
-                             std::span<const HMM_Mat4> _transforms) {
+bool RendererImpl::DrawShapes(std::span<const HMM_Mat4> _transforms,
+                              Shape _shape) {
   // Updates instance model matrices buffer
   auto buffer_binding = resources_->transforms_buffer.Append(
       std::as_bytes(std::span{_transforms}));
@@ -136,13 +136,11 @@ bool RendererImpl::DrawShape(Shape _shape,
 }
 
 bool RendererImpl::DrawAxes(std::span<const HMM_Mat4> _transforms) {
-  // Layers im rendering, so only calls registered within this pass are
-  // rendered.
-
   sgl_defaults();
   sgl_matrix_mode_projection();
   sgl_load_matrix(view_proj_.Elements[0]);
   sgl_matrix_mode_modelview();
+
   for (auto& transform : _transforms) {
     sgl_load_matrix(transform.Elements[0]);
 
@@ -161,6 +159,55 @@ bool RendererImpl::DrawAxes(std::span<const HMM_Mat4> _transforms) {
     sgl_end();
   }
 
+  return true;
+}
+bool RendererImpl::DrawGrids(std::span<const HMM_Mat4> _transforms,
+                             int _cells) {
+  const float kCellSize = 1.f;
+  const float extent = _cells * kCellSize;
+  const float half_extent = extent * 0.5f;
+  const auto corner = HMM_Vec3{-half_extent, 0, -half_extent};
+
+  sgl_defaults();
+  sgl_matrix_mode_projection();
+  sgl_load_matrix(view_proj_.Elements[0]);
+  sgl_matrix_mode_modelview();
+
+  for (auto& transform : _transforms) {
+    sgl_load_matrix(transform.Elements[0]);
+
+    sgl_begin_triangle_strip();
+    sgl_c4b(0x80, 0xc0, 0xd0, 0xb0);
+    sgl_v3f(corner.X, corner.Y, corner.Z);
+    sgl_v3f(corner.X, corner.Y, corner.Z + extent);
+    sgl_v3f(corner.X + extent, corner.Y, corner.Z);
+    sgl_v3f(corner.X + extent, corner.Y, corner.Z + extent);
+
+    sgl_end();
+
+    sgl_begin_lines();
+    sgl_c4b(0x54, 0x55, 0x50, 0xff);
+
+    // Renders lines along X axis.
+    auto begin = corner, end = corner;
+    end.X += extent;
+    for (int i = 0; i < _cells + 1; ++i) {
+      sgl_v3f(begin.X, begin.Y, begin.Z);
+      sgl_v3f(end.X, end.Y, end.Z);
+      begin.Z += kCellSize;
+      end.Z += kCellSize;
+    }
+    // Renders lines along Z axis.
+    begin = end = corner;
+    end.Z += extent;
+    for (int i = 0; i < _cells + 1; ++i) {
+      sgl_v3f(begin.X, begin.Y, begin.Z);
+      sgl_v3f(end.X, end.Y, end.Z);
+      begin.X += kCellSize;
+      end.X += kCellSize;
+    }
+    sgl_end();
+  }
   return true;
 }
 }  // namespace flip

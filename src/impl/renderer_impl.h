@@ -20,9 +20,11 @@ class RendererImpl : public Renderer {
   virtual bool Event(const sapp_event& _event) override;
   virtual bool Menu() override;
 
-  virtual bool DrawShape(Shape _shape,
-                         std::span<const HMM_Mat4> _transforms) override;
+  virtual bool DrawShapes(std::span<const HMM_Mat4> _transforms,
+                          Shape _shape) override;
   virtual bool DrawAxes(std::span<const HMM_Mat4> _transforms) override;
+  virtual bool DrawGrids(std::span<const HMM_Mat4> _transforms,
+                         int _cells) override;
 
   virtual const HMM_Mat4& GetViewProj() const override { return view_proj_; }
   virtual Imgui& imgui() const override { return *imgui_; }

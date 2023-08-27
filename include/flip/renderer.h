@@ -8,16 +8,6 @@ namespace flip {
 struct CameraView;
 class Imgui;
 
-// Helper functions to construct a span from a single object.
-template <typename _T>
-auto make_span(const _T& _t) {
-  return std::span<const _T>{&_t, 1};
-}
-template <typename _T>
-auto make_span(_T& _t) {
-  return std::span<_T>{&_t, 1};
-}
-
 // Defines render Color structure.
 struct Color {
   float r, g, b, a;
@@ -61,16 +51,23 @@ class Renderer {
   virtual Imgui& imgui() const = 0;
 
   enum Shape {
-    kPlane,     // Size of (1, 0, 1), with origin in the corner (0, 0, 0).
-    kCube,      // Size of (1, 1, 1) with origin in the corner (0, 0, 0).
+    kPlane,     // Size of (1, 0, 1), with origin at plane center (.5, 0, .5).
+    kCube,      // Size of (1, 1, 1) with origin in the box center (.5, .5, .5).
     kSphere,    // Radius of .5, with origin at sphere center (.5, .5, .5)
     kCylinder,  // Radius of .5, with origin at center of bottom disk
     kTorus,     // Radius of .4, ring radius of .1, with origin at torus center
     kCount
   };
-  virtual bool DrawShape(Shape _shape,
-                         std::span<const HMM_Mat4> _transforms) = 0;
+
+  // Renders shapes, as described by Shape enumeration
+  virtual bool DrawShapes(std::span<const HMM_Mat4> _transforms,
+                          Shape _shape) = 0;
+
+  // Renders xyz coordinate system.
   virtual bool DrawAxes(std::span<const HMM_Mat4> _transforms) = 0;
+
+  // Renders yz grids of _cells, with origin at plane center.
+  virtual bool DrawGrids(std::span<const HMM_Mat4> _transforms, int _cells) = 0;
 
  protected:
  private:
