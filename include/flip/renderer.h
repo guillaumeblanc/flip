@@ -51,28 +51,22 @@ class Renderer {
   virtual Imgui& imgui() const = 0;
 
   enum Shape {
-    kPlane,     // Size of (1, 0, 1), with origin in the corner (0, 0, 0).
-    kCube,      // Size of (1, 1, 1) with origin in the corner (0, 0, 0).
+    kPlane,     // Size of (1, 0, 1), with origin at plane center (.5, 0, .5).
+    kCube,      // Size of (1, 1, 1) with origin in the box center (.5, .5, .5).
     kSphere,    // Radius of .5, with origin at sphere center (.5, .5, .5)
     kCylinder,  // Radius of .5, with origin at center of bottom disk
     kTorus,     // Radius of .4, ring radius of .1, with origin at torus center
     kCount
   };
 
-  virtual bool DrawShape(const HMM_Mat4& _transform, Shape _shape) {
-    return DrawShapes({&_transform, 1}, _shape);
-  }
+  // Renders shapes, as described by Shape enumeration
   virtual bool DrawShapes(std::span<const HMM_Mat4> _transforms,
                           Shape _shape) = 0;
 
-  virtual bool DrawAxis(const HMM_Mat4& _transform) {
-    return DrawAxes({&_transform, 1});
-  }
+  // Renders xyz coordinate system.
   virtual bool DrawAxes(std::span<const HMM_Mat4> _transforms) = 0;
 
-  virtual bool DrawGrid(const HMM_Mat4& _transform, int _cells) {
-    return DrawGrids({&_transform, 1}, _cells);
-  }
+  // Renders yz grids of _cells, with origin at plane center.
   virtual bool DrawGrids(std::span<const HMM_Mat4> _transforms, int _cells) = 0;
 
  protected:
