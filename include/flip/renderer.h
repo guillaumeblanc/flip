@@ -56,6 +56,8 @@ class Renderer {
     kTorus,     // Radius of .4, ring radius of .1, with origin at torus center
     kCount
   };
+
+  // Renders shapes, as described by Shape enumeration
   virtual bool DrawShapes(std::span<const HMM_Mat4> _transforms,
                           Shape _shape) = 0;
 
