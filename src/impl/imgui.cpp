@@ -1,4 +1,4 @@
-#include "imgui_impl.h"
+#include "imgui.h"
 
 #include "imgui/imgui.h"
 #include "imgui_font.h"
@@ -8,7 +8,7 @@
 
 namespace flip {
 
-bool ImguiImpl::Initialize() {
+bool Imgui::Initialize() {
   const auto& app_desc = sapp_query_desc();
 
   // Setup sokol-imgui
@@ -65,28 +65,29 @@ bool ImguiImpl::Initialize() {
   return true;
 }
 
-ImguiImpl::~ImguiImpl() {
+Imgui::~Imgui() {
   font_image_.reset();
   font_sampler_.reset();
   simgui_shutdown();
 }
 
-bool ImguiImpl::Event(const sapp_event& _event) {
+bool Imgui::Event(const sapp_event& _event) {
   return simgui_handle_event(&_event);
 }
 
-void ImguiImpl::BeginFrame() {
+void Imgui::BeginFrame() {
   simgui_new_frame(simgui_frame_desc_t{.width = sapp_width(),
                                        .height = sapp_height(),
                                        .delta_time = sapp_frame_duration(),
                                        .dpi_scale = sapp_dpi_scale()});
-}
-void ImguiImpl::EndFrame() { simgui_render(); }
 
-void ImguiImpl::BeginMainMenu() {
+  // Open a main menu bar by default
   bool open = ImGui::BeginMainMenuBar();
   assert(open);
 }
-void ImguiImpl::EndMainMenu() { ImGui::EndMainMenuBar(); }
+void Imgui::EndFrame() {
+  ImGui::EndMainMenuBar();
+  simgui_render();
+}
 
 }  // namespace flip

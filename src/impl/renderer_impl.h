@@ -8,6 +8,7 @@
 
 namespace flip {
 struct CameraView;
+class Imgui;
 
 // Base Renderer interface
 class RendererImpl : public Renderer {
@@ -27,7 +28,6 @@ class RendererImpl : public Renderer {
                          int _cells) override;
 
   virtual const HMM_Mat4& GetViewProj() const override { return view_proj_; }
-  virtual Imgui& imgui() const override { return *imgui_; }
 
  private:
   virtual void BeginDefaultPass(const CameraView& _view) override;

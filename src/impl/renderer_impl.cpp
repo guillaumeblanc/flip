@@ -1,5 +1,7 @@
 #include "renderer_impl.h"
 
+#include <unordered_map>  // temp imdraw
+
 // Sokol library, do not sort includes
 // clang-format off
 #include "sokol/sokol_app.h"
@@ -17,14 +19,91 @@
 // math
 #include "hmm/HandmadeMath.h"
 
-// flip
-#include "factory.h"
+// flip interfaces
 #include "flip/camera.h"
-#include "flip/imgui.h"
 #include "flip/utils/sokol_gfx.h"
+
+// flip implementations
+#include "factory.h"
+#include "imgui.h"
 #include "shapes.h"
 
 namespace flip {
+
+using SglPipeline = SgResource<sgl_pipeline, sgl_destroy_pipeline>;
+
+struct ImMode {
+  // Z
+  bool z_write = true;
+  sg_compare_func z_compare = SG_COMPAREFUNC_LESS_EQUAL;
+
+  // Culling
+  sg_cull_mode cull_mode = SG_CULLMODE_BACK;
+
+  // Blending
+  bool blending = false;
+};
+
+bool operator==(ImMode const& _a, ImMode const& _b) noexcept {
+  return _a.z_write == _b.z_write && _a.z_compare == _b.z_compare &&
+         _a.cull_mode == _b.cull_mode && _a.blending == _b.blending;
+}
+
+struct ImModeHash {
+  std::size_t operator()(ImMode const& _mode) const noexcept {
+    auto hash =
+        std::size_t(_mode.z_write) << 0 | std::size_t(_mode.z_compare) << 1 |
+        std::size_t(_mode.cull_mode) << 10 | std::size_t(_mode.blending) << 12;
+    return hash;
+  }
+};
+
+// Imdraw pipelines
+std::unordered_map<ImMode, SglPipeline, ImModeHash> pipelines;
+
+class ImDrawer {
+ public:
+  ImDrawer(Renderer& _renderer, const HMM_Mat4& _transform = HMM_M4D(1),
+           const ImMode& _mode = {}) {
+    auto it = pipelines.find(_mode);
+    if (it == pipelines.end()) {
+      sgl_pipeline pip = sgl_make_pipeline(sg_pipeline_desc{
+          .cull_mode = _mode.cull_mode,
+          .colors = {{.blend = {.enabled = _mode.blending,
+                                .src_factor_rgb = SG_BLENDFACTOR_SRC_ALPHA,
+                                .dst_factor_rgb =
+                                    SG_BLENDFACTOR_ONE_MINUS_SRC_ALPHA
+
+                      }}},
+          .depth =
+              {
+                  .write_enabled = _mode.z_write,
+                  .compare = _mode.z_compare,
+              },
+          .label = "flip: ImDrawer"});
+      it = pipelines.emplace(_mode, pip).first;
+    }
+
+    sgl_defaults();
+
+    sgl_push_pipeline();
+    sgl_load_pipeline(it->second);
+
+    sgl_matrix_mode_projection();
+    sgl_load_matrix(_renderer.GetViewProj().Elements[0]);
+
+    sgl_matrix_mode_modelview();
+    sgl_load_matrix(_transform.Elements[0]);
+  }
+  ~ImDrawer() {
+    sgl_pop_pipeline();
+
+    auto error = sgl_error();
+    (void)error;
+    assert(error == SGL_NO_ERROR &&
+           "A sgl error was triggered during ImDrawer scope");
+  }
+};
 
 struct RendererImpl::Resources {
   // Context for debug-inspection UI for sokol_gfx.h
@@ -69,6 +148,8 @@ bool RendererImpl::Initialize() {
 }
 
 RendererImpl::~RendererImpl() {
+  pipelines.clear();  // temp
+
   // Deallocates all resources.
   sg_imgui_discard(&resources_->sg_imgui_ctx);
   imgui_ = nullptr;
@@ -82,7 +163,6 @@ bool RendererImpl::Event(const sapp_event& _event) {
   return imgui_->Event(_event);
 }
 
-const int kDefaultPassLayer = 0x70501000;
 void RendererImpl::BeginDefaultPass(const CameraView& _view) {
   // Builds view-projection matrix...
   HMM_Mat4 proj = HMM_Perspective_RH_ZO(
@@ -97,11 +177,19 @@ void RendererImpl::BeginDefaultPass(const CameraView& _view) {
                                  .clear_value = {.1f, .1f, .1f, 1.f}}}};
 
   sg_begin_default_pass(&action, sapp_width(), sapp_height());
-  sgl_layer(kDefaultPassLayer);
+
+  imgui_->BeginFrame();
 }
 
 void RendererImpl::EndDefaultPass() {
-  sgl_draw_layer(kDefaultPassLayer);
+  auto error = sgl_error();
+  (void)error;
+  assert(error == SGL_NO_ERROR &&
+         "A sgl error was triggered during pass scope");
+  sgl_draw();
+
+  imgui_->EndFrame();
+
   sg_end_pass();
   sg_commit();
 }
@@ -126,7 +214,7 @@ bool RendererImpl::Menu() {
 
 bool RendererImpl::DrawShapes(std::span<const HMM_Mat4> _transforms,
                               Shape _shape) {
-  // Updates instance model matrices buffer
+  // Updates model space matrices buffer
   auto buffer_binding = resources_->transforms_buffer.Append(
       std::as_bytes(std::span{_transforms}));
 
@@ -136,11 +224,7 @@ bool RendererImpl::DrawShapes(std::span<const HMM_Mat4> _transforms,
 }
 
 bool RendererImpl::DrawAxes(std::span<const HMM_Mat4> _transforms) {
-  sgl_defaults();
-  sgl_matrix_mode_projection();
-  sgl_load_matrix(view_proj_.Elements[0]);
-  sgl_matrix_mode_modelview();
-
+  auto drawer = ImDrawer{*this};
   for (auto& transform : _transforms) {
     sgl_load_matrix(transform.Elements[0]);
 
@@ -161,52 +245,59 @@ bool RendererImpl::DrawAxes(std::span<const HMM_Mat4> _transforms) {
 
   return true;
 }
+
 bool RendererImpl::DrawGrids(std::span<const HMM_Mat4> _transforms,
                              int _cells) {
   const float kCellSize = 1.f;
   const float extent = _cells * kCellSize;
-  const float half_extent = extent * 0.5f;
-  const auto corner = HMM_Vec3{-half_extent, 0, -half_extent};
+  const auto corner = HMM_Vec3{-extent, 0, -extent} * .5f;
 
-  sgl_defaults();
-  sgl_matrix_mode_projection();
-  sgl_load_matrix(view_proj_.Elements[0]);
-  sgl_matrix_mode_modelview();
+  // Alpha blended surface
+  {
+    auto drawer = ImDrawer{
+        *this, HMM_M4D(1), {.cull_mode = SG_CULLMODE_NONE, .blending = true}};
+    for (auto& transform : _transforms) {
+      sgl_load_matrix(transform.Elements[0]);
 
-  for (auto& transform : _transforms) {
-    sgl_load_matrix(transform.Elements[0]);
-
-    sgl_begin_triangle_strip();
-    sgl_c4b(0x80, 0xc0, 0xd0, 0xb0);
-    sgl_v3f(corner.X, corner.Y, corner.Z);
-    sgl_v3f(corner.X, corner.Y, corner.Z + extent);
-    sgl_v3f(corner.X + extent, corner.Y, corner.Z);
-    sgl_v3f(corner.X + extent, corner.Y, corner.Z + extent);
-
-    sgl_end();
-
-    sgl_begin_lines();
-    sgl_c4b(0x54, 0x55, 0x50, 0xff);
-
-    // Renders lines along X axis.
-    auto begin = corner, end = corner;
-    end.X += extent;
-    for (int i = 0; i < _cells + 1; ++i) {
-      sgl_v3f(begin.X, begin.Y, begin.Z);
-      sgl_v3f(end.X, end.Y, end.Z);
-      begin.Z += kCellSize;
-      end.Z += kCellSize;
+      sgl_begin_triangle_strip();
+      sgl_c4b(0x80, 0xc0, 0xd0, 0xb0);
+      sgl_v3f(corner.X, corner.Y, corner.Z);
+      sgl_v3f(corner.X, corner.Y, corner.Z + extent);
+      sgl_v3f(corner.X + extent, corner.Y, corner.Z);
+      sgl_v3f(corner.X + extent, corner.Y, corner.Z + extent);
+      sgl_end();
     }
-    // Renders lines along Z axis.
-    begin = end = corner;
-    end.Z += extent;
-    for (int i = 0; i < _cells + 1; ++i) {
-      sgl_v3f(begin.X, begin.Y, begin.Z);
-      sgl_v3f(end.X, end.Y, end.Z);
-      begin.X += kCellSize;
-      end.X += kCellSize;
+  }
+
+  // Opaque grid lines
+  {
+    auto drawer = ImDrawer{*this};
+    for (auto& transform : _transforms) {
+      sgl_load_matrix(transform.Elements[0]);
+
+      sgl_begin_lines();
+      sgl_c4b(0x54, 0x55, 0x50, 0xff);
+
+      // Renders lines along X axis.
+      auto begin = corner, end = corner;
+      end.X += extent;
+      for (int i = 0; i < _cells + 1; ++i) {
+        sgl_v3f(begin.X, begin.Y, begin.Z);
+        sgl_v3f(end.X, end.Y, end.Z);
+        begin.Z += kCellSize;
+        end.Z += kCellSize;
+      }
+      // Renders lines along Z axis.
+      begin = end = corner;
+      end.Z += extent;
+      for (int i = 0; i < _cells + 1; ++i) {
+        sgl_v3f(begin.X, begin.Y, begin.Z);
+        sgl_v3f(end.X, end.Y, end.Z);
+        begin.X += kCellSize;
+        end.X += kCellSize;
+      }
+      sgl_end();
     }
-    sgl_end();
   }
   return true;
 }

@@ -6,7 +6,6 @@ struct sapp_event;
 
 namespace flip {
 struct CameraView;
-class Imgui;
 
 // Defines render Color structure.
 struct Color {
@@ -48,8 +47,7 @@ class Renderer {
 
   virtual const HMM_Mat4& GetViewProj() const = 0;
 
-  virtual Imgui& imgui() const = 0;
-
+  // Renders shapes, as described by Shape enumeration
   enum Shape {
     kPlane,     // Size of (1, 0, 1), with origin at plane center (.5, 0, .5).
     kCube,      // Size of (1, 1, 1) with origin in the box center (.5, .5, .5).
@@ -58,8 +56,6 @@ class Renderer {
     kTorus,     // Radius of .4, ring radius of .1, with origin at torus center
     kCount
   };
-
-  // Renders shapes, as described by Shape enumeration
   virtual bool DrawShapes(std::span<const HMM_Mat4> _transforms,
                           Shape _shape) = 0;
 

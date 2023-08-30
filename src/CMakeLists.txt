@@ -45,14 +45,13 @@ endif()
 add_library(flip
   ${PROJECT_SOURCE_DIR}/include/flip/application.h
   ${PROJECT_SOURCE_DIR}/include/flip/camera.h
-  ${PROJECT_SOURCE_DIR}/include/flip/imgui.h
   ${PROJECT_SOURCE_DIR}/include/flip/renderer.h
   ${PROJECT_SOURCE_DIR}/include/flip/utils/keyboard.h
   ${PROJECT_SOURCE_DIR}/include/flip/utils/sokol_gfx.h
   main.cpp
   impl/imgui_font.h
-  impl/imgui_impl.h
-  impl/imgui_impl.cpp
+  impl/imgui.h
+  impl/imgui.cpp
   impl/factory.h
   impl/factory.cpp
   impl/orbit_camera.h

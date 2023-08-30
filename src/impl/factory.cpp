@@ -1,6 +1,6 @@
 #include "factory.h"
 
-#include "imgui_impl.h"
+#include "imgui.h"
 #include "orbit_camera.h"
 #include "renderer_impl.h"
 
@@ -13,7 +13,7 @@ std::unique_ptr<Renderer> Factory::InstantiateRenderer() {
   return std::make_unique<RendererImpl>();
 }
 std::unique_ptr<Imgui> Factory::InstantiateImgui() {
-  return std::make_unique<ImguiImpl>();
+  return std::make_unique<Imgui>();
 }
 
 }  // namespace flip

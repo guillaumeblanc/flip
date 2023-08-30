@@ -18,7 +18,7 @@ bool Shapes::Initialize() {
   bool success = true;
 
   // Create shader
-  auto shader_desc = sg_shader_desc{};
+  auto shader_desc = sg_shader_desc{.label = "flip: Shapes"};
   shader_desc.vs.source =
       "#version 330\n"
       "uniform mat4 vp;\n"
@@ -86,7 +86,7 @@ bool Shapes::Initialize() {
       .depth = {.compare = SG_COMPAREFUNC_LESS_EQUAL, .write_enabled = true},
       .index_type = SG_INDEXTYPE_UINT16,
       .cull_mode = SG_CULLMODE_BACK,
-  });
+      .label = "flip: Shapes"});
 
   // Generate shape geometries
   sshape_vertex_t vertices[6 * 1024];
@@ -95,14 +95,8 @@ bool Shapes::Initialize() {
       .vertices = {.buffer = SSHAPE_RANGE(vertices)},
       .indices = {.buffer = SSHAPE_RANGE(indices)},
   };
-  const auto box = sshape_box_t{.width = 1.f,
-                                .height = 1.f,
-                                .depth = 1.f,
-                                .tiles = 1,
-                                .transform = {.m = {{1.f, 0.f, 0.f, 0.f},
-                                                    {0.f, 1.f, 0.f, 0.f},
-                                                    {0.f, 0.f, 1.f, 0.f},
-                                                    {.5f, .5f, .5f, 1.f}}}};
+  const auto box =
+      sshape_box_t{.width = 1.f, .height = 1.f, .depth = 1.f, .tiles = 1};
   auto to_range =
       [](const sshape_element_range_t& _sdraw) -> std::pair<int, int> {
     return {_sdraw.base_element, _sdraw.num_elements};
@@ -110,13 +104,7 @@ bool Shapes::Initialize() {
   buf = sshape_build_box(&buf, &box);
   draws_[Renderer::Shape::kCube] = to_range(sshape_element_range(&buf));
 
-  const auto plane = sshape_plane_t{.width = 1.f,
-                                    .depth = 1.f,
-                                    .tiles = 1,
-                                    .transform = {.m = {{1.f, 0.f, 0.f, 0.f},
-                                                        {0.f, 1.f, 0.f, 0.f},
-                                                        {0.f, 0.f, 1.f, 0.f},
-                                                        {.5f, 0.f, .5f, 1.f}}}};
+  const auto plane = sshape_plane_t{.width = 1.f, .depth = 1.f, .tiles = 1};
   buf = sshape_build_plane(&buf, &plane);
   draws_[Renderer::Shape::kPlane] = to_range(sshape_element_range(&buf));
 

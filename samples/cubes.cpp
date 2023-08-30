@@ -43,7 +43,8 @@ class Cubes : public flip::Application {
          ++line, pos.X = xoffset, pos.Y -= 1) {
       for (auto c = *line; *c; ++c, pos.X += 1) {
         if (*c == '#') {
-          transforms_.push_back(HMM_Translate(pos) * HMM_Scale(scale_));
+          transforms_.push_back(HMM_Translate(pos) * HMM_Scale(scale_) *
+                                HMM_Translate(HMM_Vec3{.5f, .5f, .5f}));
         }
       }
     }
@@ -51,7 +52,7 @@ class Cubes : public flip::Application {
     // Floor
     if (show_floor_) {
       transforms_.push_back(HMM_Scale(HMM_Vec3{50, 1, 50}) *
-                            HMM_Translate(HMM_Vec3{-.5f, -1.f, -.5f}));
+                            HMM_Translate(HMM_Vec3{0.f, -.5f, 0.f}));
     }
   }
 
