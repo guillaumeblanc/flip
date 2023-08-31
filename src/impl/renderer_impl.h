@@ -27,13 +27,14 @@ class RendererImpl : public Renderer {
                          int _cells) override;
 
   virtual const HMM_Mat4& GetViewProj() const override { return view_proj_; }
-  virtual Imgui& imgui() const override { return *imgui_; }
 
  private:
   virtual void BeginDefaultPass(const CameraView& _view) override;
   virtual void EndDefaultPass() override;
 
-  std::unique_ptr<Imgui> imgui_;
+  virtual void BeginImDraw(const HMM_Mat4& _transform,
+                           const ImMode& _mode) override;
+  virtual void EndImDraw() override;
 
   // Declares a resource container:
   // - Prevents from including sokol here and messing the header.

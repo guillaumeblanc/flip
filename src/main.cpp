@@ -3,7 +3,6 @@
 
 #include "flip/application.h"
 #include "flip/camera.h"
-#include "flip/imgui.h"
 #include "flip/renderer.h"
 #include "impl/factory.h"
 
@@ -141,19 +140,14 @@ class ApplicationCb {
       // Overloaded application display
       success &= application_->Display(*renderer_);
 
-      {  // Imgui frame raii
-        auto imgui_frame = Imgui::Frame(renderer_->imgui());
+      // Gui
+      success &= application_->Gui();
 
-        // Gui
-        success &= application_->Gui();
+      {  // Imgui menu
 
-        {  // Imgui menu raii
-          auto menu = Imgui::MainMenu(imgui_frame);
-
-          success &= application_->Menu();
-          success &= camera_->Menu();
-          success &= renderer_->Menu();
-        }
+        success &= application_->Menu();
+        success &= camera_->Menu();
+        success &= renderer_->Menu();
       }
     }
     return success;

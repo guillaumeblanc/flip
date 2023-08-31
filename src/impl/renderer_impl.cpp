@@ -1,5 +1,7 @@
 #include "renderer_impl.h"
 
+#include <unordered_map>  // temp imdraw
+
 // Sokol library, do not sort includes
 // clang-format off
 #include "sokol/sokol_app.h"
@@ -17,18 +19,38 @@
 // math
 #include "hmm/HandmadeMath.h"
 
-// flip
-#include "factory.h"
+// flip interfaces
 #include "flip/camera.h"
-#include "flip/imgui.h"
+#include "flip/imdrawer.h"
 #include "flip/utils/sokol_gfx.h"
+
+// flip implementations
+#include "factory.h"
+#include "imgui.h"
 #include "shapes.h"
 
 namespace flip {
 
 struct RendererImpl::Resources {
+  // Warning: order of members matters for construction / destruction order
+
+  // flip imgui
+  Imgui imgui;
+
   // Context for debug-inspection UI for sokol_gfx.h
-  sg_imgui_t sg_imgui_ctx;
+  struct SgImgui {
+    SgImgui() {
+      // Setups sokol-gl debug imgui
+      const sg_imgui_desc_t desc = {};
+      sg_imgui_init(&context, &desc);
+    }
+
+    ~SgImgui() { sg_imgui_discard(&context); }
+    sg_imgui_t context;
+  } sg_imgui;
+
+  // flip imdrawer
+  ImDrawer im_drawer;
 
   // Buffer of transforms used for instanced rendering.
   SgDynamicBuffer transforms_buffer;
@@ -37,13 +59,10 @@ struct RendererImpl::Resources {
   Shapes shapes;
 };
 
-RendererImpl::RendererImpl() : imgui_(Factory().InstantiateImgui()) {}
+RendererImpl::RendererImpl() {}
 
 bool RendererImpl::Initialize() {
   bool success = true;
-
-  // Allocates the resource container
-  resources_ = std::make_unique<Resources>();
 
   // Setups sokol gfx
   const auto& app_desc = sapp_query_desc();
@@ -51,16 +70,8 @@ bool RendererImpl::Initialize() {
                               .user_data = app_desc.logger.user_data},
                    .context = sapp_sgcontext()});
 
-  // Setups sokol-gl
-  sgl_setup(sgl_desc_t{.logger = {.func = app_desc.logger.func,
-                                  .user_data = app_desc.logger.user_data}});
-
-  // Setup imgui
-  success &= imgui_->Initialize();
-
-  // Setups sokol-gl debug imgui
-  const sg_imgui_desc_t desc = {};
-  sg_imgui_init(&resources_->sg_imgui_ctx, &desc);
+  // Allocates the resource container once gfx is ready
+  resources_ = std::make_unique<Resources>();
 
   // Initialize shape resources
   success &= resources_->shapes.Initialize();
@@ -70,19 +81,15 @@ bool RendererImpl::Initialize() {
 
 RendererImpl::~RendererImpl() {
   // Deallocates all resources.
-  sg_imgui_discard(&resources_->sg_imgui_ctx);
-  imgui_ = nullptr;
   resources_ = nullptr;
 
-  sgl_shutdown();
   sg_shutdown();
 }
 
 bool RendererImpl::Event(const sapp_event& _event) {
-  return imgui_->Event(_event);
+  return resources_->imgui.Event(_event);
 }
 
-const int kDefaultPassLayer = 0x70501000;
 void RendererImpl::BeginDefaultPass(const CameraView& _view) {
   // Builds view-projection matrix...
   HMM_Mat4 proj = HMM_Perspective_RH_ZO(
@@ -97,18 +104,32 @@ void RendererImpl::BeginDefaultPass(const CameraView& _view) {
                                  .clear_value = {.1f, .1f, .1f, 1.f}}}};
 
   sg_begin_default_pass(&action, sapp_width(), sapp_height());
-  sgl_layer(kDefaultPassLayer);
+
+  resources_->imgui.BeginFrame();
 }
 
 void RendererImpl::EndDefaultPass() {
-  sgl_draw_layer(kDefaultPassLayer);
+  auto error = sgl_error();
+  (void)error;
+  assert(error == SGL_NO_ERROR &&
+         "A sgl error was triggered during pass scope");
+  sgl_draw();
+
+  resources_->imgui.EndFrame();
+
   sg_end_pass();
   sg_commit();
 }
 
+void RendererImpl::BeginImDraw(const HMM_Mat4& _transform,
+                               const ImMode& _mode) {
+  resources_->im_drawer.Begin(view_proj_, _transform, _mode);
+}
+void RendererImpl::EndImDraw() { resources_->im_drawer.End(); }
+
 bool RendererImpl::Menu() {
   // Sokol gl debug menu
-  auto& ctx = resources_->sg_imgui_ctx;
+  auto& ctx = resources_->sg_imgui.context;
   if (ImGui::BeginMenu("Debug")) {
     ImGui::MenuItem("Buffers", 0, &ctx.buffers.open);
     ImGui::MenuItem("Images", 0, &ctx.images.open);
@@ -126,7 +147,7 @@ bool RendererImpl::Menu() {
 
 bool RendererImpl::DrawShapes(std::span<const HMM_Mat4> _transforms,
                               Shape _shape) {
-  // Updates instance model matrices buffer
+  // Updates model space matrices buffer
   auto buffer_binding = resources_->transforms_buffer.Append(
       std::as_bytes(std::span{_transforms}));
 
@@ -136,11 +157,7 @@ bool RendererImpl::DrawShapes(std::span<const HMM_Mat4> _transforms,
 }
 
 bool RendererImpl::DrawAxes(std::span<const HMM_Mat4> _transforms) {
-  sgl_defaults();
-  sgl_matrix_mode_projection();
-  sgl_load_matrix(view_proj_.Elements[0]);
-  sgl_matrix_mode_modelview();
-
+  auto drawer = ImDraw{*this, HMM_M4D(1), {}};
   for (auto& transform : _transforms) {
     sgl_load_matrix(transform.Elements[0]);
 
@@ -161,52 +178,59 @@ bool RendererImpl::DrawAxes(std::span<const HMM_Mat4> _transforms) {
 
   return true;
 }
+
 bool RendererImpl::DrawGrids(std::span<const HMM_Mat4> _transforms,
                              int _cells) {
   const float kCellSize = 1.f;
   const float extent = _cells * kCellSize;
-  const float half_extent = extent * 0.5f;
-  const auto corner = HMM_Vec3{-half_extent, 0, -half_extent};
+  const auto corner = HMM_Vec3{-extent, 0, -extent} * .5f;
 
-  sgl_defaults();
-  sgl_matrix_mode_projection();
-  sgl_load_matrix(view_proj_.Elements[0]);
-  sgl_matrix_mode_modelview();
+  // Alpha blended surface
+  {
+    auto drawer = ImDraw{
+        *this, HMM_M4D(1), {.cull_mode = SG_CULLMODE_NONE, .blending = true}};
+    for (auto& transform : _transforms) {
+      sgl_load_matrix(transform.Elements[0]);
 
-  for (auto& transform : _transforms) {
-    sgl_load_matrix(transform.Elements[0]);
-
-    sgl_begin_triangle_strip();
-    sgl_c4b(0x80, 0xc0, 0xd0, 0xb0);
-    sgl_v3f(corner.X, corner.Y, corner.Z);
-    sgl_v3f(corner.X, corner.Y, corner.Z + extent);
-    sgl_v3f(corner.X + extent, corner.Y, corner.Z);
-    sgl_v3f(corner.X + extent, corner.Y, corner.Z + extent);
-
-    sgl_end();
-
-    sgl_begin_lines();
-    sgl_c4b(0x54, 0x55, 0x50, 0xff);
-
-    // Renders lines along X axis.
-    auto begin = corner, end = corner;
-    end.X += extent;
-    for (int i = 0; i < _cells + 1; ++i) {
-      sgl_v3f(begin.X, begin.Y, begin.Z);
-      sgl_v3f(end.X, end.Y, end.Z);
-      begin.Z += kCellSize;
-      end.Z += kCellSize;
+      sgl_begin_triangle_strip();
+      sgl_c4b(0x80, 0xc0, 0xd0, 0xb0);
+      sgl_v3f(corner.X, corner.Y, corner.Z);
+      sgl_v3f(corner.X, corner.Y, corner.Z + extent);
+      sgl_v3f(corner.X + extent, corner.Y, corner.Z);
+      sgl_v3f(corner.X + extent, corner.Y, corner.Z + extent);
+      sgl_end();
     }
-    // Renders lines along Z axis.
-    begin = end = corner;
-    end.Z += extent;
-    for (int i = 0; i < _cells + 1; ++i) {
-      sgl_v3f(begin.X, begin.Y, begin.Z);
-      sgl_v3f(end.X, end.Y, end.Z);
-      begin.X += kCellSize;
-      end.X += kCellSize;
+  }
+
+  // Opaque grid lines
+  {
+    auto drawer = ImDraw{*this, HMM_M4D(1), ImMode{}};
+    for (auto& transform : _transforms) {
+      sgl_load_matrix(transform.Elements[0]);
+
+      sgl_begin_lines();
+      sgl_c4b(0x54, 0x55, 0x50, 0xff);
+
+      // Renders lines along X axis.
+      auto begin = corner, end = corner;
+      end.X += extent;
+      for (int i = 0; i < _cells + 1; ++i) {
+        sgl_v3f(begin.X, begin.Y, begin.Z);
+        sgl_v3f(end.X, end.Y, end.Z);
+        begin.Z += kCellSize;
+        end.Z += kCellSize;
+      }
+      // Renders lines along Z axis.
+      begin = end = corner;
+      end.Z += extent;
+      for (int i = 0; i < _cells + 1; ++i) {
+        sgl_v3f(begin.X, begin.Y, begin.Z);
+        sgl_v3f(end.X, end.Y, end.Z);
+        begin.X += kCellSize;
+        end.X += kCellSize;
+      }
+      sgl_end();
     }
-    sgl_end();
   }
   return true;
 }

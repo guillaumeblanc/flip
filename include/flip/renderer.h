@@ -6,7 +6,7 @@ struct sapp_event;
 
 namespace flip {
 struct CameraView;
-class Imgui;
+struct ImMode;
 
 // Defines render Color structure.
 struct Color {
@@ -48,8 +48,7 @@ class Renderer {
 
   virtual const HMM_Mat4& GetViewProj() const = 0;
 
-  virtual Imgui& imgui() const = 0;
-
+  // Renders shapes, as described by Shape enumeration
   enum Shape {
     kPlane,     // Size of (1, 0, 1), with origin at plane center (.5, 0, .5).
     kCube,      // Size of (1, 1, 1) with origin in the box center (.5, .5, .5).
@@ -58,8 +57,6 @@ class Renderer {
     kTorus,     // Radius of .4, ring radius of .1, with origin at torus center
     kCount
   };
-
-  // Renders shapes, as described by Shape enumeration
   virtual bool DrawShapes(std::span<const HMM_Mat4> _transforms,
                           Shape _shape) = 0;
 
@@ -69,10 +66,26 @@ class Renderer {
   // Renders yz grids of _cells, with origin at plane center.
   virtual bool DrawGrids(std::span<const HMM_Mat4> _transforms, int _cells) = 0;
 
+  // RAII to begin/end the default rendering pass
+  class ImDraw {
+   public:
+    ImDraw(Renderer& _renderer, const HMM_Mat4& _transform, const ImMode& _mode)
+        : renderer_(_renderer) {
+      renderer_.BeginImDraw(_transform, _mode);
+    }
+    ~ImDraw() { renderer_.EndImDraw(); }
+
+   private:
+    Renderer& renderer_;
+  };
+
  protected:
  private:
   virtual void BeginDefaultPass(const CameraView& _view) = 0;
   virtual void EndDefaultPass() = 0;
+
+  virtual void BeginImDraw(const HMM_Mat4& _transform, const ImMode& _mode) = 0;
+  virtual void EndImDraw() = 0;
 };
 
 }  // namespace flip
