@@ -8,7 +8,7 @@
 
 namespace flip {
 
-bool Imgui::Initialize() {
+Imgui::Imgui() {
   const auto& app_desc = sapp_query_desc();
 
   // Setup sokol-imgui
@@ -61,8 +61,6 @@ bool Imgui::Initialize() {
       .sampler = font_sampler_,
   };
   io.Fonts->TexID = simgui_imtextureid(simgui_make_image(&font_desc));
-
-  return true;
 }
 
 Imgui::~Imgui() {

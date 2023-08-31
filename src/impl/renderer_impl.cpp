@@ -21,6 +21,7 @@
 
 // flip interfaces
 #include "flip/camera.h"
+#include "flip/imdrawer.h"
 #include "flip/utils/sokol_gfx.h"
 
 // flip implementations
@@ -30,84 +31,26 @@
 
 namespace flip {
 
-using SglPipeline = SgResource<sgl_pipeline, sgl_destroy_pipeline>;
+struct RendererImpl::Resources {
+  // Warning: order of members matters for construction / destruction order
 
-struct ImMode {
-  // Z
-  bool z_write = true;
-  sg_compare_func z_compare = SG_COMPAREFUNC_LESS_EQUAL;
+  // flip imgui
+  Imgui imgui;
 
-  // Culling
-  sg_cull_mode cull_mode = SG_CULLMODE_BACK;
-
-  // Blending
-  bool blending = false;
-};
-
-bool operator==(ImMode const& _a, ImMode const& _b) noexcept {
-  return _a.z_write == _b.z_write && _a.z_compare == _b.z_compare &&
-         _a.cull_mode == _b.cull_mode && _a.blending == _b.blending;
-}
-
-struct ImModeHash {
-  std::size_t operator()(ImMode const& _mode) const noexcept {
-    auto hash =
-        std::size_t(_mode.z_write) << 0 | std::size_t(_mode.z_compare) << 1 |
-        std::size_t(_mode.cull_mode) << 10 | std::size_t(_mode.blending) << 12;
-    return hash;
-  }
-};
-
-// Imdraw pipelines
-std::unordered_map<ImMode, SglPipeline, ImModeHash> pipelines;
-
-class ImDrawer {
- public:
-  ImDrawer(Renderer& _renderer, const HMM_Mat4& _transform = HMM_M4D(1),
-           const ImMode& _mode = {}) {
-    auto it = pipelines.find(_mode);
-    if (it == pipelines.end()) {
-      sgl_pipeline pip = sgl_make_pipeline(sg_pipeline_desc{
-          .cull_mode = _mode.cull_mode,
-          .colors = {{.blend = {.enabled = _mode.blending,
-                                .src_factor_rgb = SG_BLENDFACTOR_SRC_ALPHA,
-                                .dst_factor_rgb =
-                                    SG_BLENDFACTOR_ONE_MINUS_SRC_ALPHA
-
-                      }}},
-          .depth =
-              {
-                  .write_enabled = _mode.z_write,
-                  .compare = _mode.z_compare,
-              },
-          .label = "flip: ImDrawer"});
-      it = pipelines.emplace(_mode, pip).first;
+  // Context for debug-inspection UI for sokol_gfx.h
+  struct SgImgui {
+    SgImgui() {
+      // Setups sokol-gl debug imgui
+      const sg_imgui_desc_t desc = {};
+      sg_imgui_init(&context, &desc);
     }
 
-    sgl_defaults();
+    ~SgImgui() { sg_imgui_discard(&context); }
+    sg_imgui_t context;
+  } sg_imgui;
 
-    sgl_push_pipeline();
-    sgl_load_pipeline(it->second);
-
-    sgl_matrix_mode_projection();
-    sgl_load_matrix(_renderer.GetViewProj().Elements[0]);
-
-    sgl_matrix_mode_modelview();
-    sgl_load_matrix(_transform.Elements[0]);
-  }
-  ~ImDrawer() {
-    sgl_pop_pipeline();
-
-    auto error = sgl_error();
-    (void)error;
-    assert(error == SGL_NO_ERROR &&
-           "A sgl error was triggered during ImDrawer scope");
-  }
-};
-
-struct RendererImpl::Resources {
-  // Context for debug-inspection UI for sokol_gfx.h
-  sg_imgui_t sg_imgui_ctx;
+  // flip imdrawer
+  ImDrawer im_drawer;
 
   // Buffer of transforms used for instanced rendering.
   SgDynamicBuffer transforms_buffer;
@@ -116,13 +59,10 @@ struct RendererImpl::Resources {
   Shapes shapes;
 };
 
-RendererImpl::RendererImpl() : imgui_(Factory().InstantiateImgui()) {}
+RendererImpl::RendererImpl() {}
 
 bool RendererImpl::Initialize() {
   bool success = true;
-
-  // Allocates the resource container
-  resources_ = std::make_unique<Resources>();
 
   // Setups sokol gfx
   const auto& app_desc = sapp_query_desc();
@@ -130,16 +70,8 @@ bool RendererImpl::Initialize() {
                               .user_data = app_desc.logger.user_data},
                    .context = sapp_sgcontext()});
 
-  // Setups sokol-gl
-  sgl_setup(sgl_desc_t{.logger = {.func = app_desc.logger.func,
-                                  .user_data = app_desc.logger.user_data}});
-
-  // Setup imgui
-  success &= imgui_->Initialize();
-
-  // Setups sokol-gl debug imgui
-  const sg_imgui_desc_t desc = {};
-  sg_imgui_init(&resources_->sg_imgui_ctx, &desc);
+  // Allocates the resource container once gfx is ready
+  resources_ = std::make_unique<Resources>();
 
   // Initialize shape resources
   success &= resources_->shapes.Initialize();
@@ -148,19 +80,14 @@ bool RendererImpl::Initialize() {
 }
 
 RendererImpl::~RendererImpl() {
-  pipelines.clear();  // temp
-
   // Deallocates all resources.
-  sg_imgui_discard(&resources_->sg_imgui_ctx);
-  imgui_ = nullptr;
   resources_ = nullptr;
 
-  sgl_shutdown();
   sg_shutdown();
 }
 
 bool RendererImpl::Event(const sapp_event& _event) {
-  return imgui_->Event(_event);
+  return resources_->imgui.Event(_event);
 }
 
 void RendererImpl::BeginDefaultPass(const CameraView& _view) {
@@ -178,7 +105,7 @@ void RendererImpl::BeginDefaultPass(const CameraView& _view) {
 
   sg_begin_default_pass(&action, sapp_width(), sapp_height());
 
-  imgui_->BeginFrame();
+  resources_->imgui.BeginFrame();
 }
 
 void RendererImpl::EndDefaultPass() {
@@ -188,15 +115,21 @@ void RendererImpl::EndDefaultPass() {
          "A sgl error was triggered during pass scope");
   sgl_draw();
 
-  imgui_->EndFrame();
+  resources_->imgui.EndFrame();
 
   sg_end_pass();
   sg_commit();
 }
 
+void RendererImpl::BeginImDraw(const HMM_Mat4& _transform,
+                               const ImMode& _mode) {
+  resources_->im_drawer.Begin(view_proj_, _transform, _mode);
+}
+void RendererImpl::EndImDraw() { resources_->im_drawer.End(); }
+
 bool RendererImpl::Menu() {
   // Sokol gl debug menu
-  auto& ctx = resources_->sg_imgui_ctx;
+  auto& ctx = resources_->sg_imgui.context;
   if (ImGui::BeginMenu("Debug")) {
     ImGui::MenuItem("Buffers", 0, &ctx.buffers.open);
     ImGui::MenuItem("Images", 0, &ctx.images.open);
@@ -224,7 +157,7 @@ bool RendererImpl::DrawShapes(std::span<const HMM_Mat4> _transforms,
 }
 
 bool RendererImpl::DrawAxes(std::span<const HMM_Mat4> _transforms) {
-  auto drawer = ImDrawer{*this};
+  auto drawer = ImDraw{*this, HMM_M4D(1), {}};
   for (auto& transform : _transforms) {
     sgl_load_matrix(transform.Elements[0]);
 
@@ -254,7 +187,7 @@ bool RendererImpl::DrawGrids(std::span<const HMM_Mat4> _transforms,
 
   // Alpha blended surface
   {
-    auto drawer = ImDrawer{
+    auto drawer = ImDraw{
         *this, HMM_M4D(1), {.cull_mode = SG_CULLMODE_NONE, .blending = true}};
     for (auto& transform : _transforms) {
       sgl_load_matrix(transform.Elements[0]);
@@ -271,7 +204,7 @@ bool RendererImpl::DrawGrids(std::span<const HMM_Mat4> _transforms,
 
   // Opaque grid lines
   {
-    auto drawer = ImDrawer{*this};
+    auto drawer = ImDraw{*this, HMM_M4D(1), ImMode{}};
     for (auto& transform : _transforms) {
       sgl_load_matrix(transform.Elements[0]);
 

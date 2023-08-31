@@ -8,14 +8,14 @@ namespace flip {
 // Base Renderer interface
 class Imgui {
  public:
+  Imgui();
   virtual ~Imgui();
 
-  virtual bool Initialize();
-  virtual bool Event(const sapp_event& _event);
-  virtual bool Menu() { return true; }
+  bool Event(const sapp_event& _event);
+  bool Menu() { return true; }
 
-  virtual void BeginFrame();
-  virtual void EndFrame();
+  void BeginFrame();
+  void EndFrame();
 
  protected:
  private:

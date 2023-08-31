@@ -11,9 +11,9 @@ add_executable(input input.cpp)
 target_link_libraries(input flip)
 add_test(NAME input COMMAND input "headless=true")
 
-add_executable(im_draw im_draw.cpp)
-target_link_libraries(im_draw flip)
-add_test(NAME im_draw COMMAND im_draw "headless=true")
+add_executable(imdrawing imdrawing.cpp)
+target_link_libraries(imdrawing flip)
+add_test(NAME imdrawing COMMAND imdrawing "headless=true")
 
 add_executable(custom custom.cpp)
 target_link_libraries(custom flip)
