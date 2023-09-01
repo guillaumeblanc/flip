@@ -15,7 +15,7 @@ class ImDrawing : public flip::Application {
                      HMM_Rotate_RH(HMM_PI / 4, HMM_Vec3{0, std::cos(_time),
                                                         std::sin(_time)});
 
-    // Plain alpha blended quad
+    // Double face alpha blended white quad
     {
       auto drawer =
           flip::ImDraw{_renderer,
@@ -34,7 +34,7 @@ class ImDrawing : public flip::Application {
       sgl_end();
     }
 
-    // Quad contour
+    // Green quad contour
     {
       auto drawer = flip::ImDraw{
           _renderer, transform * HMM_Rotate_RH(_time, HMM_Vec3{0, 1, 0}), {}};
