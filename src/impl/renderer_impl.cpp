@@ -21,11 +21,11 @@
 
 // flip interfaces
 #include "flip/camera.h"
-#include "flip/imdrawer.h"
 #include "flip/utils/sokol_gfx.h"
 
 // flip implementations
 #include "factory.h"
+#include "imdrawer.h"
 #include "imgui.h"
 #include "shapes.h"
 
