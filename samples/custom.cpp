@@ -56,8 +56,7 @@ class Custom : public flip::Application {
     return true;
   }
 
-  virtual bool Display(flip::Renderer& _renderer, float _time, float _dt,
-                       float _inv_dt) override {
+  virtual bool Display(flip::Renderer& _renderer) override {
     sg_apply_pipeline(pipeline_);
 
     auto bind = sg_bindings{.vertex_buffers = {vertex_buffer_}};

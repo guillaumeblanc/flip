@@ -138,7 +138,7 @@ class ApplicationCb {
       success &= renderer_->DrawAxes({&identity, 1});
 
       // Overloaded application display
-      success &= application_->Display(*renderer_, _time, _dt, _inv_dt);
+      success &= application_->Display(*renderer_);
 
       // Gui
       success &= application_->Gui();

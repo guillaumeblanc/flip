@@ -45,10 +45,7 @@ class Application {
     return LoopControl::kContinue;
   }
 
-  virtual bool Display(Renderer& _renderer, float _time, float _dt,
-                       float _inv_dt) {
-    return true;
-  }
+  virtual bool Display(Renderer& _renderer) { return true; }
   virtual bool Menu() { return true; }
   virtual bool Gui() { return true; }
 

@@ -22,7 +22,7 @@ static const Color kYellow = {1, 1, 0, 1};
 static const Color kMagenta = {1, 0, 1, 1};
 static const Color kCyan = {0, 1, 1, 1};
 static const Color kGrey = {.5f, .5f, .5f, 1};
-static const Color kBlack = {.5f, .5f, .5f, 1};
+static const Color kBlack = {0, 0, 0, 1};
 
 // Base Renderer interface
 class Renderer {
