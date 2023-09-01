@@ -14,8 +14,8 @@ class Shapes {
 
   bool Initialize();
 
-  bool Draw(Renderer::Shape _shape, int _intances, const BufferBinding& _models,
-            HMM_Mat4& _view_proj);
+  bool Draw(Renderer::Shape _shape, Color _color, int _intances,
+            const BufferBinding& _models, HMM_Mat4& _view_proj);
 
  protected:
  private:

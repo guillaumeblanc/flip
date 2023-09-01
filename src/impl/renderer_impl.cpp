@@ -146,14 +146,14 @@ bool RendererImpl::Menu() {
 }
 
 bool RendererImpl::DrawShapes(std::span<const HMM_Mat4> _transforms,
-                              Shape _shape) {
+                              Shape _shape, Color _color) {
   // Updates model space matrices buffer
   auto buffer_binding = resources_->transforms_buffer.Append(
       std::as_bytes(std::span{_transforms}));
 
   // Draw
-  return resources_->shapes.Draw(_shape, _transforms.size(), buffer_binding,
-                                 view_proj_);
+  return resources_->shapes.Draw(_shape, _color, _transforms.size(),
+                                 buffer_binding, view_proj_);
 }
 
 bool RendererImpl::DrawAxes(std::span<const HMM_Mat4> _transforms) {

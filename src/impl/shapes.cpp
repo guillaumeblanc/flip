@@ -13,7 +13,9 @@ namespace flip {
 
 struct Uniforms {
   HMM_Mat4 vp;
+  Color color;
 };
+
 bool Shapes::Initialize() {
   bool success = true;
 
@@ -22,11 +24,11 @@ bool Shapes::Initialize() {
   shader_desc.vs.source =
       "#version 330\n"
       "uniform mat4 vp;\n"
+      "uniform vec4 color;\n"
       "layout(location=0) in vec4 position;\n"
       "layout(location=1) in vec3 normal;\n"
       "layout(location=2) in vec2 texcoord;\n"
-      "layout(location=3) in vec4 color;\n"
-      "layout(location=4) in mat4 model;\n"
+      "layout(location=3) in mat4 model;\n"
       "out vec3 vertex_normal;\n"
       "out vec4 vertex_color;\n"
       "void main() {\n"
@@ -42,7 +44,8 @@ bool Shapes::Initialize() {
       "}\n";
   shader_desc.vs.uniform_blocks[0] = {
       .size = sizeof(Uniforms),
-      .uniforms = {{.name = "vp", .type = SG_UNIFORMTYPE_MAT4}}};
+      .uniforms = {{.name = "vp", .type = SG_UNIFORMTYPE_MAT4},
+                   {.name = "color", .type = SG_UNIFORMTYPE_FLOAT4}}};
   shader_desc.fs.source =
       "#version 330\n"
       "in vec3 vertex_normal;\n"
@@ -54,7 +57,7 @@ bool Shapes::Initialize() {
       "  vec2 bt = mix(vec2(.3, .7), vec2(.4, .8), alpha.xz);\n"
       "  vec3 ambient = mix(vec3(bt.x, .3, bt.x), vec3(bt.y, .8, bt.y), "
       "alpha.y);\n"
-      "  frag_color = vec4(ambient, 1.);\n"
+      "  frag_color = vertex_color * vec4(ambient, 1.);\n"
       "}\n";
   shader_ = MakeSgShader(shader_desc);
 
@@ -69,7 +72,6 @@ bool Shapes::Initialize() {
                          sshape_position_vertex_attr_state(),
                          sshape_normal_vertex_attr_state(),
                          sshape_texcoord_vertex_attr_state(),
-                         sshape_color_vertex_attr_state(),
                          sg_vertex_attr_state{.buffer_index = 1,
                                               .offset = 0,
                                               .format = SG_VERTEXFORMAT_FLOAT4},
@@ -146,7 +148,7 @@ bool Shapes::Initialize() {
   return buf.valid;
 }
 
-bool Shapes::Draw(Renderer::Shape _shape, int _intances,
+bool Shapes::Draw(Renderer::Shape _shape, Color _color, int _intances,
                   const BufferBinding& _models, HMM_Mat4& _view_proj) {
   sg_apply_pipeline(pipeline_);
 
@@ -157,7 +159,7 @@ bool Shapes::Draw(Renderer::Shape _shape, int _intances,
   bindings.index_buffer = index_buffer_;
   sg_apply_bindings(bindings);
 
-  const auto uniforms = Uniforms{.vp = _view_proj};
+  const auto uniforms = Uniforms{.vp = _view_proj, .color = _color};
   sg_apply_uniforms(SG_SHADERSTAGE_VS, 0, SG_RANGE(uniforms));
 
   sg_draw(draws_[_shape].first, draws_[_shape].second, _intances);

@@ -57,8 +57,8 @@ class Renderer {
     kTorus,     // Radius of .4, ring radius of .1, with origin at torus center
     kCount
   };
-  virtual bool DrawShapes(std::span<const HMM_Mat4> _transforms,
-                          Shape _shape) = 0;
+  virtual bool DrawShapes(std::span<const HMM_Mat4> _transforms, Shape _shape,
+                          Color _color) = 0;
 
   // Renders xyz coordinate system.
   virtual bool DrawAxes(std::span<const HMM_Mat4> _transforms) = 0;

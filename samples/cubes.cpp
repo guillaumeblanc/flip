@@ -58,7 +58,7 @@ class Cubes : public flip::Application {
 
   virtual bool Display(flip::Renderer& _renderer, float _time, float _dt,
                        float _inv_dt) override {
-    return _renderer.DrawShapes(transforms_, flip::Renderer::kCube);
+    return _renderer.DrawShapes(transforms_, flip::Renderer::kCube, flip::kRed);
   }
 
   virtual bool Menu() override {
