@@ -66,24 +66,12 @@ class Renderer {
   // Renders yz grids of _cells, with origin at plane center.
   virtual bool DrawGrids(std::span<const HMM_Mat4> _transforms, int _cells) = 0;
 
-  // RAII to begin/end the default rendering pass
-  class ImDraw {
-   public:
-    ImDraw(Renderer& _renderer, const HMM_Mat4& _transform, const ImMode& _mode)
-        : renderer_(_renderer) {
-      renderer_.BeginImDraw(_transform, _mode);
-    }
-    ~ImDraw() { renderer_.EndImDraw(); }
-
-   private:
-    Renderer& renderer_;
-  };
-
  protected:
  private:
   virtual void BeginDefaultPass(const CameraView& _view) = 0;
   virtual void EndDefaultPass() = 0;
 
+  friend class ImDraw;
   virtual void BeginImDraw(const HMM_Mat4& _transform, const ImMode& _mode) = 0;
   virtual void EndImDraw() = 0;
 };

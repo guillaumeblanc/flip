@@ -46,10 +46,11 @@ add_library(flip
   ${PROJECT_SOURCE_DIR}/include/flip/application.h
   ${PROJECT_SOURCE_DIR}/include/flip/camera.h
   ${PROJECT_SOURCE_DIR}/include/flip/renderer.h
-  ${PROJECT_SOURCE_DIR}/include/flip/imdrawer.h
+  ${PROJECT_SOURCE_DIR}/include/flip/imdraw.h
   ${PROJECT_SOURCE_DIR}/include/flip/utils/keyboard.h
   ${PROJECT_SOURCE_DIR}/include/flip/utils/sokol_gfx.h
   main.cpp
+  impl/imdrawer.h
   impl/imdrawer.cpp
   impl/imgui_font.h
   impl/imgui.h

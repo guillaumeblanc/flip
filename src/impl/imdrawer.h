@@ -2,25 +2,9 @@
 
 #include <unordered_map>
 
-// Explicitly exposes sokol includes and data structures which are supposed to
-// be used directly from user side
-#include "flip/utils/sokol_gfx.h"
-#include "hmm/HandmadeMath.h"
-#include "sokol/util/sokol_gl.h"
+#include "flip/imdraw.h"
 
 namespace flip {
-
-struct ImMode {
-  // Z
-  bool z_write = true;
-  sg_compare_func z_compare = SG_COMPAREFUNC_LESS_EQUAL;
-
-  // Culling
-  sg_cull_mode cull_mode = SG_CULLMODE_BACK;
-
-  // Blending
-  bool blending = false;
-};
 
 inline bool operator==(ImMode const& _a, ImMode const& _b) noexcept {
   return _a.z_write == _b.z_write && _a.z_compare == _b.z_compare &&
