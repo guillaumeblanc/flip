@@ -13,7 +13,10 @@ ImDrawer::ImDrawer() {
                                   .user_data = app_desc.logger.user_data}});
 }
 
-ImDrawer::~ImDrawer() { sgl_shutdown(); }
+ImDrawer::~ImDrawer() {
+  pipelines_.clear();
+  sgl_shutdown();
+}
 
 void ImDrawer::Begin(const HMM_Mat4& _view_proj, const HMM_Mat4& _transform,
                      const ImMode& _mode) {

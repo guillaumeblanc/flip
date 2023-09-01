@@ -3,7 +3,7 @@
 #include "flip/utils/sokol_gfx.h"
 #include "hmm/HandmadeMath.h"
 
-// Implement the custom flip::Application.
+// Implement a full custom rendring with flip::Application.
 class Custom : public flip::Application {
  public:
   Custom() : flip::Application(Settings{.title = "Custom"}) {}
