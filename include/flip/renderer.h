@@ -8,9 +8,11 @@ namespace flip {
 struct CameraView;
 struct ImMode;
 
-// Defines render Color structure.
-struct Color {
-  float r, g, b, a;
+union Color {
+  struct {
+    float r, g, b, a;
+  };
+  float rgba[4];
 };
 
 // Color constants.

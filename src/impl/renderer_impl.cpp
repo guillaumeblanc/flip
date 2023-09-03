@@ -186,6 +186,7 @@ bool RendererImpl::DrawGrids(std::span<const HMM_Mat4> _transforms,
   const auto corner = HMM_Vec3{-extent, 0, -extent} * .5f;
 
   // Alpha blended surface
+  /*
   {
     auto drawer = ImDraw{
         *this, HMM_M4D(1), {.cull_mode = SG_CULLMODE_NONE, .blending = true}};
@@ -201,15 +202,15 @@ bool RendererImpl::DrawGrids(std::span<const HMM_Mat4> _transforms,
       sgl_end();
     }
   }
-
+*/
   // Opaque grid lines
   {
-    auto drawer = ImDraw{*this, HMM_M4D(1), ImMode{}};
+    auto drawer = ImDraw{*this, HMM_M4D(1), {}};
     for (auto& transform : _transforms) {
       sgl_load_matrix(transform.Elements[0]);
 
       sgl_begin_lines();
-      sgl_c4b(0x54, 0x55, 0x50, 0xff);
+      sgl_c4b(0xa0, 0xa0, 0xa0, 0xff);
 
       // Renders lines along X axis.
       auto begin = corner, end = corner;

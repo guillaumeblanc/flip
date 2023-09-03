@@ -17,10 +17,15 @@ target_include_directories(imgui PRIVATE ${PROJECT_SOURCE_DIR}/extern/imgui)
 add_library(hmm INTERFACE ${PROJECT_SOURCE_DIR}/extern/hmm/HandmadeMath.h)
 target_include_directories(hmm INTERFACE ${PROJECT_SOURCE_DIR}/extern)
 
+# Stb image
+add_library(stb_image extern/stb/stb_image.cpp ${PROJECT_SOURCE_DIR}/extern/stb/stb_image.h)
+target_include_directories(stb_image PUBLIC ${PROJECT_SOURCE_DIR}/extern)
+target_compile_definitions(stb_image PUBLIC STBI_NO_STDIO)
+
 # Sokol
 add_library(sokol
-  $<IF:$<BOOL:${APPLE}>, impl/sokol_impl.mm, impl/sokol_impl.cpp>
-  impl/sokol_impl.h)
+  $<IF:$<BOOL:${APPLE}>, extern/sokol/sokol.mm, extern/sokol/sokol.cpp>
+  extern/sokol/sokol.h)
 target_compile_definitions(sokol PUBLIC SOKOL_GLCORE33 SOKOL_NO_ENTRY)
 target_include_directories(sokol PUBLIC ${PROJECT_SOURCE_DIR}/extern)
 target_include_directories(sokol PRIVATE ${PROJECT_SOURCE_DIR}/extern/sokol)
@@ -66,4 +71,4 @@ add_library(flip
   utils/keyboard.cpp
   utils/sokol_gfx.cpp)
 target_include_directories(flip PUBLIC ${PROJECT_SOURCE_DIR}/include)
-target_link_libraries(flip sokol hmm)
+target_link_libraries(flip sokol hmm stb_image)

@@ -33,7 +33,6 @@ class ImDrawing : public flip::Application {
       sgl_v3f(-1, 1, 0);
       sgl_v3f(1, 1, 0);
       sgl_v3f(1, -1, 0);
-      sgl_v3f(-1, -1, 0);
 
       sgl_end();
     }

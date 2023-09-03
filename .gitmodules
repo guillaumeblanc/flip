@@ -8,3 +8,6 @@
 [submodule "extern/hmm"]
 	path = extern/hmm
 	url = https://github.com/HandmadeMath/HandmadeMath.git
+[submodule "extern/stb"]
+	path = extern/stb
+	url = https://github.com/nothings/stb.git

@@ -18,3 +18,7 @@ add_test(NAME imdrawing COMMAND imdrawing "headless=true")
 add_executable(custom custom.cpp)
 target_link_libraries(custom flip)
 add_test(NAME custom COMMAND custom "headless=true")
+
+add_executable(texture texture.cpp)
+target_link_libraries(texture flip)
+add_test(NAME texture COMMAND texture "headless=true")
