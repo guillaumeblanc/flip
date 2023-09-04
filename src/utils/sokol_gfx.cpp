@@ -2,7 +2,8 @@
 
 namespace flip {
 BufferBinding SgDynamicBuffer::Append(std::span<const std::byte> _data) {
-  if (!buffer_ || sg_query_buffer_will_overflow(buffer_, _data.size_bytes())) {
+  if (!buffer_.is_valid() ||
+      sg_query_buffer_will_overflow(buffer_, _data.size_bytes())) {
     // Reallocates the buffer to be able to store enough data for the frame.
     // This shall happens until a stable maximum size (per frame) is reached.
     // sokol manages frame counter internally.

@@ -4,6 +4,9 @@
 union HMM_Mat4;
 struct sapp_event;
 
+// TEMP
+struct sg_image;
+
 namespace flip {
 struct CameraView;
 struct ImMode;
@@ -73,7 +76,7 @@ class Renderer {
 
   friend class ImDraw;
   virtual void BeginImDraw(const HMM_Mat4& _transform, const ImMode& _mode) = 0;
-  virtual void EndImDraw() = 0;
+  virtual void EndImDraw(sg_image _image, bool _linear) = 0;
 };
 
 }  // namespace flip

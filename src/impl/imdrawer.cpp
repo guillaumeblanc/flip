@@ -6,23 +6,77 @@
 
 namespace flip {
 
+// TEMP
+static ImDrawer* g_drawer = nullptr;
+void ImDraw::Submit() { g_drawer->Submit(vertex_); }
+
 ImDrawer::ImDrawer() {
-  // Setups sokol-gl
-  const auto& app_desc = sapp_query_desc();
-  sgl_setup(sgl_desc_t{.logger = {.func = app_desc.logger.func,
-                                  .user_data = app_desc.logger.user_data}});
+  g_drawer = this;
+
+  // Shader
+  auto shader_desc = sg_shader_desc{.label = "flip:: ImDrawer"};
+  shader_desc.vs.uniform_blocks[0] = {
+      .size = sizeof(HMM_Mat4),
+      .uniforms = {{.name = "mvp", .type = SG_UNIFORMTYPE_MAT4}}};
+  shader_desc.vs.source =
+      "#version 330\n"
+      "uniform mat4 mvp;\n"
+      "layout(location=0) in vec3 position;\n"
+      "layout(location=1) in vec4 color;\n"
+      "layout(location=2) in vec2 uv;\n"
+      "out vec2 vertex_uv;\n"
+      "out vec4 vertex_color;\n"
+      "void main() {\n"
+      "  gl_Position = mvp * vec4(position, 1.);\n"
+      "  vertex_uv = uv;\n"
+      "  vertex_color = color;\n"
+      "}\n";
+  shader_desc.fs.images[0] = {.used = true};
+  shader_desc.fs.samplers[0] = {.used = true};
+  shader_desc.fs.image_sampler_pairs[0] = {
+      .used = true, .image_slot = 0, .sampler_slot = 0, .glsl_name = "tex"};
+  shader_desc.fs.source =
+      "#version 330\n"
+      "uniform sampler2D tex;\n"
+      "in vec2 vertex_uv;\n"
+      "in vec4 vertex_color;\n"
+      "out vec4 frag_color;\n"
+      "void main() {\n"
+      "  frag_color = texture(tex, vertex_uv) * vertex_color;\n"
+      "}\n";
+  shader_ = flip::MakeSgShader(shader_desc);
+
+  // Image
+  uint32_t pixels[] = {0xFFFFFFFF};  // Single white pixel
+  image_ = flip::MakeSgImage(
+      sg_image_desc{.width = 1,
+                    .height = 1,
+                    .data = {.subimage = {{SG_RANGE(pixels)}}},
+                    .label = "flip: ImDrawer"});
+
+  // Sampler
+  samplers_[false] = flip::MakeSgSampler(sg_sampler_desc{
+      .min_filter = SG_FILTER_NEAREST,
+      .mag_filter = SG_FILTER_NEAREST,
+  });
+  samplers_[true] = flip::MakeSgSampler(sg_sampler_desc{
+      .min_filter = SG_FILTER_LINEAR,
+      .mag_filter = SG_FILTER_LINEAR,
+  });
 }
 
-ImDrawer::~ImDrawer() {
-  pipelines_.clear();
-  sgl_shutdown();
-}
+ImDrawer::~ImDrawer() {}
 
 void ImDrawer::Begin(const HMM_Mat4& _view_proj, const HMM_Mat4& _transform,
                      const ImMode& _mode) {
   auto it = pipelines_.find(_mode);
   if (it == pipelines_.end()) {
-    sgl_pipeline pip = sgl_make_pipeline(sg_pipeline_desc{
+    sg_pipeline pip = sg_make_pipeline(sg_pipeline_desc{
+        .shader = shader_,
+        .layout = {.buffers = {{.stride = 36}},
+                   .attrs = {{.format = SG_VERTEXFORMAT_FLOAT3},
+                             {.format = SG_VERTEXFORMAT_FLOAT4},
+                             {.format = SG_VERTEXFORMAT_FLOAT2}}},
         .depth = {.compare = _mode.z_compare, .write_enabled = _mode.z_write},
         .colors = {{.blend = {.enabled = _mode.blending,
                               .src_factor_rgb = SG_BLENDFACTOR_SRC_ALPHA,
@@ -30,30 +84,30 @@ void ImDrawer::Begin(const HMM_Mat4& _view_proj, const HMM_Mat4& _transform,
                                   SG_BLENDFACTOR_ONE_MINUS_SRC_ALPHA
 
                     }}},
+        .primitive_type = _mode.type,
         .cull_mode = _mode.cull_mode,
         .label = "flip: ImDrawer"});
     it = pipelines_.emplace(_mode, pip).first;
   }
 
-  sgl_defaults();
+  sg_apply_pipeline(it->second);
 
-  sgl_push_pipeline();
-  sgl_load_pipeline(it->second);
-
-  sgl_matrix_mode_projection();
-  sgl_load_matrix(_view_proj.Elements[0]);
-
-  sgl_matrix_mode_modelview();
-  sgl_load_matrix(_transform.Elements[0]);
+  const auto mvp = _view_proj * _transform;
+  sg_apply_uniforms(SG_SHADERSTAGE_VS, 0, {mvp.Elements[0], 64});
 }
 
-void ImDrawer::End() {
-  sgl_pop_pipeline();
+void ImDrawer::End(sg_image _image, bool _linear) {
+  // Updates vertices buffer
+  auto buffer_binding = buffer_.Append(std::as_bytes(std::span{vertices_}));
 
-  auto error = sgl_error();
-  (void)error;
-  assert(error == SGL_NO_ERROR &&
-         "A sgl error was triggered during ImDrawer scope");
+  sg_apply_bindings(sg_bindings{
+      .vertex_buffers = {buffer_binding.id},
+      .vertex_buffer_offsets = {buffer_binding.offset},
+      .fs = {.images = {_image}, .samplers = {samplers_[_linear].id()}}});
+  sg_draw(0, vertices_.size(), 1);
+
+  // Will start from scratch again
+  vertices_.clear();
 }
 
 }  // namespace flip
