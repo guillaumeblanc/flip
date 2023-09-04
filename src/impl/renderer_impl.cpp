@@ -1,13 +1,10 @@
 #include "renderer_impl.h"
 
-#include <unordered_map>  // temp imdraw
-
 // Sokol library, do not sort includes
 // clang-format off
 #include "sokol/sokol_app.h"
 #include "sokol/sokol_gfx.h"
 #include "sokol/sokol_glue.h"
-#include "sokol/util/sokol_gl.h"
 #include "sokol/util/sokol_imgui.h"
 #include "sokol/util/sokol_gfx_imgui.h"
 #include "sokol/util/sokol_shape.h"
@@ -30,7 +27,6 @@
 #include "shapes.h"
 
 namespace flip {
-
 struct RendererImpl::Resources {
   // Warning: order of members matters for construction / destruction order
 
@@ -109,12 +105,6 @@ void RendererImpl::BeginDefaultPass(const CameraView& _view) {
 }
 
 void RendererImpl::EndDefaultPass() {
-  auto error = sgl_error();
-  (void)error;
-  assert(error == SGL_NO_ERROR &&
-         "A sgl error was triggered during pass scope");
-  sgl_draw();
-
   resources_->imgui.EndFrame();
 
   sg_end_pass();
@@ -125,7 +115,10 @@ void RendererImpl::BeginImDraw(const HMM_Mat4& _transform,
                                const ImMode& _mode) {
   resources_->im_drawer.Begin(view_proj_, _transform, _mode);
 }
-void RendererImpl::EndImDraw() { resources_->im_drawer.End(); }
+void RendererImpl::EndImDraw(std::span<const ImVertex> _vertices,
+                             sg_image _image, sg_sampler _sampler) {
+  resources_->im_drawer.End(_vertices, _image, _sampler);
+}
 
 bool RendererImpl::Menu() {
   // Sokol gl debug menu
@@ -157,25 +150,22 @@ bool RendererImpl::DrawShapes(std::span<const HMM_Mat4> _transforms,
 }
 
 bool RendererImpl::DrawAxes(std::span<const HMM_Mat4> _transforms) {
-  auto drawer = ImDraw{*this, HMM_M4D(1), {}};
   for (auto& transform : _transforms) {
-    sgl_load_matrix(transform.Elements[0]);
+    auto drawer =
+        flip::ImDraw{*this, transform, {.type = SG_PRIMITIVETYPE_LINES}};
 
-    sgl_begin_lines();
-    sgl_c4b(0xff, 0, 0, 0xff);
-    sgl_v3f(0, 0, 0);
-    sgl_v3f(1, 0, 0);
+    drawer.color(1, 0, 0, 1);
+    drawer.vertex(0, 0, 0);
+    drawer.vertex(1, 0, 0);
 
-    sgl_c4b(0, 0xff, 0, 0xff);
-    sgl_v3f(0, 0, 0);
-    sgl_v3f(0, 1, 0);
+    drawer.color(0, 1, 0, 1);
+    drawer.vertex(0, 0, 0);
+    drawer.vertex(0, 1, 0);
 
-    sgl_c4b(0, 0, 0xff, 0xff);
-    sgl_v3f(0, 0, 0);
-    sgl_v3f(0, 0, 1);
-    sgl_end();
+    drawer.color(0, 0, 1, 1);
+    drawer.vertex(0, 0, 0);
+    drawer.vertex(0, 0, 1);
   }
-
   return true;
 }
 
@@ -186,38 +176,35 @@ bool RendererImpl::DrawGrids(std::span<const HMM_Mat4> _transforms,
   const auto corner = HMM_Vec3{-extent, 0, -extent} * .5f;
 
   // Alpha blended surface
-  /*
   {
-    auto drawer = ImDraw{
-        *this, HMM_M4D(1), {.cull_mode = SG_CULLMODE_NONE, .blending = true}};
     for (auto& transform : _transforms) {
-      sgl_load_matrix(transform.Elements[0]);
+      auto drawer = ImDraw{*this,
+                           transform,
+                           {.type = SG_PRIMITIVETYPE_TRIANGLE_STRIP,
+                            .cull_mode = SG_CULLMODE_NONE,
+                            .blending = true}};
 
-      sgl_begin_triangle_strip();
-      sgl_c4b(0x80, 0xc0, 0xd0, 0xb0);
-      sgl_v3f(corner.X, corner.Y, corner.Z);
-      sgl_v3f(corner.X, corner.Y, corner.Z + extent);
-      sgl_v3f(corner.X + extent, corner.Y, corner.Z);
-      sgl_v3f(corner.X + extent, corner.Y, corner.Z + extent);
-      sgl_end();
+      drawer.color(.5f, .7f, .8f, .6f);
+      drawer.vertex(corner.X, corner.Y, corner.Z);
+      drawer.vertex(corner.X, corner.Y, corner.Z + extent);
+      drawer.vertex(corner.X + extent, corner.Y, corner.Z);
+      drawer.vertex(corner.X + extent, corner.Y, corner.Z + extent);
     }
   }
-*/
+
   // Opaque grid lines
   {
-    auto drawer = ImDraw{*this, HMM_M4D(1), {}};
     for (auto& transform : _transforms) {
-      sgl_load_matrix(transform.Elements[0]);
+      auto drawer = ImDraw{*this, transform, {.type = SG_PRIMITIVETYPE_LINES}};
 
-      sgl_begin_lines();
-      sgl_c4b(0xa0, 0xa0, 0xa0, 0xff);
+      drawer.color(.9f, .9f, .9f, 1.f);
 
       // Renders lines along X axis.
       auto begin = corner, end = corner;
       end.X += extent;
       for (int i = 0; i < _cells + 1; ++i) {
-        sgl_v3f(begin.X, begin.Y, begin.Z);
-        sgl_v3f(end.X, end.Y, end.Z);
+        drawer.vertex(begin.X, begin.Y, begin.Z);
+        drawer.vertex(end.X, end.Y, end.Z);
         begin.Z += kCellSize;
         end.Z += kCellSize;
       }
@@ -225,12 +212,11 @@ bool RendererImpl::DrawGrids(std::span<const HMM_Mat4> _transforms,
       begin = end = corner;
       end.Z += extent;
       for (int i = 0; i < _cells + 1; ++i) {
-        sgl_v3f(begin.X, begin.Y, begin.Z);
-        sgl_v3f(end.X, end.Y, end.Z);
+        drawer.vertex(begin.X, begin.Y, begin.Z);
+        drawer.vertex(end.X, end.Y, end.Z);
         begin.X += kCellSize;
         end.X += kCellSize;
       }
-      sgl_end();
     }
   }
   return true;

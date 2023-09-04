@@ -21,7 +21,7 @@ class Custom : public flip::Application {
         flip::MakeSgBuffer(sg_buffer_desc{.data = SG_RANGE(vertices)});
 
     // A shader
-    auto shader_desc = sg_shader_desc{};
+    auto shader_desc = sg_shader_desc{.label = "Custom sample"};
     shader_desc.vs.uniform_blocks[0] = {
         .size = sizeof(HMM_Mat4),
         .uniforms = {{.name = "mvp", .type = SG_UNIFORMTYPE_MAT4}}};
@@ -52,14 +52,15 @@ class Custom : public flip::Application {
                              {.format = SG_VERTEXFORMAT_FLOAT4}}},
         .depth = {.compare = SG_COMPAREFUNC_LESS_EQUAL, .write_enabled = true},
         .cull_mode = SG_CULLMODE_BACK,
-    });
+        .label = "Custom sample"});
     return true;
   }
 
   virtual bool Display(flip::Renderer& _renderer) override {
     sg_apply_pipeline(pipeline_);
 
-    auto bind = sg_bindings{.vertex_buffers = {vertex_buffer_}};
+    sg_buffer b = vertex_buffer_;
+    auto bind = sg_bindings{.vertex_buffers = {b}};
     sg_apply_bindings(&bind);
     sg_apply_uniforms(SG_SHADERSTAGE_VS, 0,
                       {_renderer.GetViewProj().Elements[0], 64});

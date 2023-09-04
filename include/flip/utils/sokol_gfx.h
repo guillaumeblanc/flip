@@ -40,8 +40,10 @@ class SgResource {
 
   void reset(_Id _id = _Id{SG_INVALID_ID}) noexcept { *this = SgResource(_id); }
 
-  operator bool() const noexcept { return id_.id != SG_INVALID_ID; }
+  bool is_valid() const noexcept { return id_.id != SG_INVALID_ID; }
+
   operator _Id() const noexcept { return id_; }
+  _Id id() const noexcept { return id_; }
 
  private:
   _Id id_ = {};

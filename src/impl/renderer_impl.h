@@ -34,7 +34,8 @@ class RendererImpl : public Renderer {
 
   virtual void BeginImDraw(const HMM_Mat4& _transform,
                            const ImMode& _mode) override;
-  virtual void EndImDraw() override;
+  virtual void EndImDraw(std::span<const ImVertex> _vertices, sg_image _image,
+                         sg_sampler _sampler) override;
 
   // Declares a resource container:
   // - Prevents from including sokol here and messing the header.

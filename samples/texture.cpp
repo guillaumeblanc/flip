@@ -21,49 +21,44 @@ class Texture : public flip::Application {
 
     image_ = LoadImage("media/flip_512.png");
 
-    samplers_[false] = flip::MakeSgSampler(sg_sampler_desc{
-        .min_filter = SG_FILTER_NEAREST, .mag_filter = SG_FILTER_NEAREST});
-    samplers_[true] = flip::MakeSgSampler(sg_sampler_desc{
-        .min_filter = SG_FILTER_LINEAR, .mag_filter = SG_FILTER_LINEAR});
+    sampler_ = SetupSampler(linear_);
 
     return true;
   }
 
   virtual bool Display(flip::Renderer& _renderer) override {
-    // Double face alpha blended white quad
-    {
-      auto drawer =
-          flip::ImDraw{_renderer,
-                       HMM_M4D(1),
-                       {.cull_mode = SG_CULLMODE_NONE, .blending = true}};
+    auto drawer = flip::ImDraw{_renderer,
+                               HMM_M4D(1),
+                               {.type = SG_PRIMITIVETYPE_TRIANGLE_STRIP,
+                                .cull_mode = SG_CULLMODE_NONE,
+                                .blending = true}};
 
-      if (texture_) {
-        sgl_enable_texture();
-        sgl_texture(image_, samplers_[linear_]);
-      }
-
-      sgl_begin_quads();
-
-      sgl_c4f(color_.r, color_.g, color_.b, color_.a);
-
-      // Vertex   x, y, z, u, v
-      sgl_v3f_t2f(-5, 0, 0, 0, 1);
-      sgl_v3f_t2f(-5, 10, 0, 0, 0);
-      sgl_v3f_t2f(5, 10, 0, 1, 0);
-      sgl_v3f_t2f(5, 0, 0, 1, 1);
-
-      sgl_end();
-
-      sgl_disable_texture();
+    if (texture_) {
+      drawer.texture(image_, sampler_);
     }
 
+    drawer.color(color_);
+
+    drawer.vertex(-5, 10, 0, 0, 0);
+    drawer.vertex(-5, 0, 0, 0, 1);
+    drawer.vertex(5, 10, 0, 1, 0);
+    drawer.vertex(5, 0, 0, 1, 1);
+
     return true;
+  }
+
+  static flip::SgSampler SetupSampler(bool _linear) {
+    auto filter = _linear ? SG_FILTER_LINEAR : SG_FILTER_NEAREST;
+    return flip::MakeSgSampler(sg_sampler_desc{
+        .min_filter = filter, .mag_filter = filter, .label = "Texture sample"});
   }
 
   virtual bool Menu() override {
     if (ImGui::BeginMenu("Sample")) {
       ImGui::Checkbox("Enable texture", &texture_);
-      ImGui::Checkbox("Linear filtering", &linear_);
+      if (ImGui::Checkbox("Linear filtering", &linear_)) {
+        sampler_ = SetupSampler(linear_);
+      }
       ImGui::ColorEdit4("Color", color_.rgba);
       ImGui::EndMenu();
     }
@@ -93,14 +88,16 @@ class Texture : public flip::Application {
       const char* error = stbi_failure_reason();
     } else {
       // Init image from pixels
-      sg_init_image(
-          image,
-          sg_image_desc{.width = width,
+      sg_init_image(image,
+                    sg_image_desc{
+                        .width = width,
                         .height = height,
                         .pixel_format = SG_PIXELFORMAT_RGBA8,
                         .data = {.subimage = {{{.ptr = pixels,
                                                 .size = static_cast<size_t>(
-                                                    width * height * 4)}}}}});
+                                                    width * height * 4)}}}},
+                        .label = "Texture sample",
+                    });
       stbi_image_free(pixels);
     }
 
@@ -110,7 +107,7 @@ class Texture : public flip::Application {
 
  private:
   flip::SgImage image_;
-  flip::SgSampler samplers_[2];
+  flip::SgSampler sampler_;
 
   flip::Color color_ = flip::kYellow;
   bool texture_ = true;

@@ -49,7 +49,8 @@ class ApplicationCb {
           .sample_count = settings.sample_count,
           .high_dpi = settings.high_dpi,
           .window_title = settings.title,
-          .logger = {.func = slog_func}});
+          .logger = {.func = slog_func},
+      });
 
       // sapp_run never returns on some platforms. Cleanup must be done in the
       // cb.
@@ -133,12 +134,12 @@ class ApplicationCb {
     {  // Default Rendering pass raii
       auto pass = Renderer::DefaultPass(*renderer_, camera_->GetCameraView());
 
+      // Overloaded application display
+      success &= application_->Display(*renderer_);
+
       const auto identity = HMM_M4D(1);
       success &= renderer_->DrawGrids({&identity, 1}, 20);
       success &= renderer_->DrawAxes({&identity, 1});
-
-      // Overloaded application display
-      success &= application_->Display(*renderer_);
 
       // Gui
       success &= application_->Gui();

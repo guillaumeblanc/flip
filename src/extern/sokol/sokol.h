@@ -14,7 +14,6 @@
 #include "sokol_log.h"
 #include "sokol_time.h"
 
-#include "util/sokol_gl.h"
 #include "util/sokol_shape.h"
 
 #include "imgui/imgui.h"

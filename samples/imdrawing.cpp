@@ -19,38 +19,34 @@ class ImDrawing : public flip::Application {
   }
 
   virtual bool Display(flip::Renderer& _renderer) override {
-    // Double face alpha blended white quad
-    {
-      auto drawer =
-          flip::ImDraw{_renderer,
-                       transform1_,
-                       {.cull_mode = SG_CULLMODE_NONE, .blending = true}};
-
-      sgl_begin_quads();
-      sgl_c4b(0xff, 0xff, 0xff, 0xa0);
-
-      sgl_v3f(-1, -1, 0);
-      sgl_v3f(-1, 1, 0);
-      sgl_v3f(1, 1, 0);
-      sgl_v3f(1, -1, 0);
-
-      sgl_end();
-    }
-
     // Green quad contour
     {
-      auto drawer = flip::ImDraw{_renderer, transform2_, {}};
+      auto drawer = flip::ImDraw{
+          _renderer, transform2_, {.type = SG_PRIMITIVETYPE_LINE_STRIP}};
 
-      sgl_begin_line_strip();
-      sgl_c4b(0x0, 0xff, 0x0, 0xff);
+      drawer.color(0, 1, 0, 1);
 
-      sgl_v3f(-1, -1, 0);
-      sgl_v3f(-1, 1, 0);
-      sgl_v3f(1, 1, 0);
-      sgl_v3f(1, -1, 0);
-      sgl_v3f(-1, -1, 0);
+      drawer.vertex(-1, -1, 0);
+      drawer.vertex(-1, 1, 0);
+      drawer.vertex(1, 1, 0);
+      drawer.vertex(1, -1, 0);
+      drawer.vertex(-1, -1, 0);
+    }
 
-      sgl_end();
+    // Double face alpha blended white quad
+    {
+      auto drawer = flip::ImDraw{_renderer,
+                                 transform1_,
+                                 {.type = SG_PRIMITIVETYPE_TRIANGLE_STRIP,
+                                  .cull_mode = SG_CULLMODE_NONE,
+                                  .blending = true}};
+
+      drawer.color(1, 1, 1, .8f);
+
+      drawer.vertex(-1, 1, 0);
+      drawer.vertex(-1, -1, 0);
+      drawer.vertex(1, 1, 0);
+      drawer.vertex(1, -1, 0);
     }
 
     return true;
