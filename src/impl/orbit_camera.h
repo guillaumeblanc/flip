@@ -26,8 +26,8 @@ class OrbitCamera : public Camera {
 
   const float kMinDist = 1.f;
   const float kMaxDist = 100.f;
-  const float kMinLat = -1.5f;
-  const float kMaxLat = 1.5f;
+  const float kMinLat = -kPi_2 * .95f;
+  const float kMaxLat = kPi_2 * .95f;
   const float kOrbitFactor = .01f;
   const float kPanFactor = .002f;
   const float kMoveFactor = .002f;
@@ -36,7 +36,7 @@ class OrbitCamera : public Camera {
   float distance_ = 20.f;
   float latitude_ = .2f;
   float longitude_ = 0.f;
-  CameraView camera_view_ = {.fov = HMM_PI32 / 2.f};
+  CameraView camera_view_ = {.fov = kPi_2};
 };
 
 }  // namespace flip

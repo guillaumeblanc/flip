@@ -4,7 +4,7 @@
 #include <algorithm>
 #include <cmath>
 
-#include "hmm/HandmadeMath.h"
+#include "flip/math.h"
 #include "imgui/imgui.h"
 #include "sokol/sokol_app.h"
 
@@ -41,10 +41,10 @@ bool OrbitCamera::Orbit(float _dx, float _dy) {
   longitude_ -= _dx * kOrbitFactor;
 
   while (longitude_ < 0) {
-    longitude_ += HMM_PI32 * 2;
+    longitude_ += flip::k2Pi;
   }
-  while (longitude_ > HMM_PI32 * 2) {
-    longitude_ -= HMM_PI32 * 2;
+  while (longitude_ > flip::k2Pi) {
+    longitude_ -= flip::k2Pi;
   }
 
   latitude_ = std::clamp(latitude_ + _dy * kOrbitFactor, kMinLat, kMaxLat);

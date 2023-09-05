@@ -141,9 +141,8 @@ class ApplicationCb {
       // Overloaded application display
       success &= application_->Display(*renderer_);
 
-      const auto identity = HMM_M4D(1);
-      success &= renderer_->DrawGrids({&identity, 1}, 20);
-      success &= renderer_->DrawAxes({&identity, 1});
+      success &= renderer_->DrawGrids({&kIdentity4, 1}, 20);
+      success &= renderer_->DrawAxes({&kIdentity4, 1});
 
       // Gui
       success &= application_->Gui();

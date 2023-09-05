@@ -3,8 +3,8 @@
 #include <vector>
 
 #include "flip/application.h"
+#include "flip/math.h"
 #include "flip/renderer.h"
-#include "hmm/HandmadeMath.h"
 #include "imgui/imgui.h"
 
 const char* kFlip[] = {

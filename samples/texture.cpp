@@ -20,7 +20,6 @@ class Texture : public flip::Application {
     }
 
     image_ = LoadImage("media/texture.png");
-
     sampler_ = SetupSampler(linear_);
 
     return true;
@@ -28,7 +27,7 @@ class Texture : public flip::Application {
 
   virtual bool Display(flip::Renderer& _renderer) override {
     auto drawer = flip::ImDraw{_renderer,
-                               HMM_M4D(1),
+                               flip::kIdentity4,
                                {.type = SG_PRIMITIVETYPE_TRIANGLE_STRIP,
                                 .cull_mode = SG_CULLMODE_NONE,
                                 .blending = true}};

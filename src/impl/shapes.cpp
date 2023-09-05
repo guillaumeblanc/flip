@@ -7,7 +7,7 @@
 #include "sokol/util/sokol_shape.h"
 // clang-format on
 
-#include "hmm/HandmadeMath.h"
+#include "flip/math.h"
 
 namespace flip {
 

@@ -1,7 +1,7 @@
 #pragma once
 
 // math
-#include "hmm/HandmadeMath.h"
+#include "flip/math.h"
 
 struct sapp_event;
 

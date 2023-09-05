@@ -1,7 +1,7 @@
 #include "flip/application.h"
+#include "flip/math.h"
 #include "flip/renderer.h"
 #include "flip/utils/sokol_gfx.h"
-#include "hmm/HandmadeMath.h"
 
 // Implement a full custom rendring with flip::Application.
 class Custom : public flip::Application {

@@ -13,11 +13,9 @@
 // Dear ImGui
 #include "imgui/imgui.h"
 
-// math
-#include "hmm/HandmadeMath.h"
-
 // flip interfaces
 #include "flip/camera.h"
+#include "flip/math.h"
 #include "flip/utils/sokol_gfx.h"
 
 // flip implementations

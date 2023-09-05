@@ -4,9 +4,9 @@
 // be used directly from user side
 #include <vector>
 
+#include "flip/math.h"
 #include "flip/renderer.h"
 #include "flip/utils/sokol_gfx.h"
-#include "hmm/HandmadeMath.h"
 
 namespace flip {
 

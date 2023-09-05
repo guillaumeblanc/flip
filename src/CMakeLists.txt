@@ -50,6 +50,7 @@ endif()
 add_library(flip
   ${PROJECT_SOURCE_DIR}/include/flip/application.h
   ${PROJECT_SOURCE_DIR}/include/flip/camera.h
+  ${PROJECT_SOURCE_DIR}/include/flip/math.h
   ${PROJECT_SOURCE_DIR}/include/flip/renderer.h
   ${PROJECT_SOURCE_DIR}/include/flip/imdraw.h
   ${PROJECT_SOURCE_DIR}/include/flip/utils/keyboard.h
