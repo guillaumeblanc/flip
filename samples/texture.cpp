@@ -1,12 +1,8 @@
-#include <fstream>
-#include <span>
-#include <vector>
-
 #include "flip/application.h"
 #include "flip/imdraw.h"
+#include "flip/utils/loader.h"
 #include "flip/utils/sokol_gfx.h"
 #include "imgui/imgui.h"
-#include "stb/stb_image.h"
 
 // Implement the minimal flip::Application.
 class Texture : public flip::Application {
@@ -19,7 +15,7 @@ class Texture : public flip::Application {
       return true;
     }
 
-    image_ = LoadImage("media/texture.png");
+    image_ = flip::LoadImage(flip::Load("media/texture.png"));
     sampler_ = SetupSampler(linear_);
 
     return true;
@@ -63,45 +59,6 @@ class Texture : public flip::Application {
     }
 
     return true;
-  }
-  flip::SgImage LoadImage(const char* _filename) {
-    auto file = std::ifstream(_filename, std::ios::binary);
-    if (!file.is_open()) {
-      return {};
-    }
-    auto content = std::vector<char>(std::istreambuf_iterator<char>(file),
-                                     std::istreambuf_iterator<char>());
-
-    return LoadImage(std::as_bytes(std::span{content}));
-  }
-
-  flip::SgImage LoadImage(std::span<const std::byte> _buffer) {
-    auto image = flip::SgImage{sg_alloc_image()};
-
-    int width, height, channels;
-    stbi_uc* pixels = stbi_load_from_memory(
-        reinterpret_cast<const stbi_uc*>(_buffer.data()),
-        static_cast<int>(_buffer.size_bytes()), &width, &height, &channels, 4);
-    if (!pixels) {
-      // Failed to load image from buffer
-      const char* error = stbi_failure_reason();
-    } else {
-      // Init image from pixels
-      sg_init_image(image,
-                    sg_image_desc{
-                        .width = width,
-                        .height = height,
-                        .pixel_format = SG_PIXELFORMAT_RGBA8,
-                        .data = {.subimage = {{{.ptr = pixels,
-                                                .size = static_cast<size_t>(
-                                                    width * height * 4)}}}},
-                        .label = "Texture sample",
-                    });
-      stbi_image_free(pixels);
-    }
-
-    // Returns image anyway, uses image state to know it's status
-    return image;
   }
 
  private:

@@ -54,6 +54,7 @@ add_library(flip
   ${PROJECT_SOURCE_DIR}/include/flip/renderer.h
   ${PROJECT_SOURCE_DIR}/include/flip/imdraw.h
   ${PROJECT_SOURCE_DIR}/include/flip/utils/keyboard.h
+  ${PROJECT_SOURCE_DIR}/include/flip/utils/loader.h
   ${PROJECT_SOURCE_DIR}/include/flip/utils/sokol_gfx.h
   main.cpp
   impl/imdrawer.h
@@ -70,6 +71,7 @@ add_library(flip
   impl/shapes.h
   impl/shapes.cpp
   utils/keyboard.cpp
+  utils/loader.cpp
   utils/sokol_gfx.cpp)
 target_include_directories(flip PUBLIC ${PROJECT_SOURCE_DIR}/include)
 target_link_libraries(flip sokol hmm stb_image)
