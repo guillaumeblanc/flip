@@ -19,7 +19,7 @@ class Texture : public flip::Application {
       return true;
     }
 
-    image_ = LoadImage("media/flip_512.png");
+    image_ = LoadImage("media/texture.png");
 
     sampler_ = SetupSampler(linear_);
 

@@ -12,6 +12,10 @@
 #include "sokol/sokol_log.h"
 #include "sokol/sokol_time.h"
 
+#ifdef __APPLE__
+#include <unistd.h>
+#endif  // __APPLE__
+
 namespace flip {
 
 class ApplicationCb {
@@ -177,6 +181,15 @@ class ApplicationCb {
 }  // namespace flip
 
 int main(int _argc, char* _argv[]) {
+#ifdef __APPLE__
+  // On OSX, when run from Finder, working path is the root path. This does not
+  // allow to load resources from relative path.
+  // The workaround is to change the working directory to application directory.
+  // The proper solution would probably be to use bundles and load data from
+  // resource folder.
+  chdir("/Users/guillaume/Documents/dev/flip/build/samples");
+#endif  // __APPLE__
+
   // Setup sargs (cli arguments)
   sargs_setup(sargs_desc{.argc = _argc, .argv = _argv});
 
