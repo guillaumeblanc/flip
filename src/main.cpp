@@ -9,6 +9,7 @@
 // Sokol library
 #include "sokol/sokol_app.h"
 #include "sokol/sokol_args.h"
+#include "sokol/sokol_fetch.h"
 #include "sokol/sokol_log.h"
 #include "sokol/sokol_time.h"
 
@@ -76,6 +77,12 @@ class ApplicationCb {
     // Time management
     stm_setup();
 
+    // Fetching
+    const auto& app_desc = sapp_query_desc();
+    sfetch_setup(
+        sfetch_desc_t{.logger = {.func = app_desc.logger.func,
+                                 .user_data = app_desc.logger.user_data}});
+
     if (!headless()) {
       success &= renderer_->Initialize();
       success &= camera_->Initialize();
@@ -94,6 +101,9 @@ class ApplicationCb {
     camera_ = nullptr;
     renderer_ = nullptr;
 
+    // Stops fetching
+    sfetch_shutdown();
+
     // Shuting down sargs here is not symmetrical with initialization, but the
     // only way to make sure it's done on all platforms.
     sargs_shutdown();
@@ -110,6 +120,9 @@ class ApplicationCb {
 
   void Frame() {
     bool success = true;
+
+    // Ticks fetching
+    sfetch_dowork();
 
     // Updates time.
     const auto dt = static_cast<float>(stm_sec(stm_laptime(&last_time_)));
