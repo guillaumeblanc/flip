@@ -1,4 +1,16 @@
 
+# Modifies output directory for all executables, so media folder relative
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ".")
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG ".")
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE ".")
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_MINSIZEREL ".")
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELWITHDEBINFO ".")
+
+set(CMAKE_DEBUG_POSTFIX "_d")
+set(CMAKE_RELEASE_POSTFIX "_r")
+set(CMAKE_MINSIZEREL_POSTFIX "_rs")
+set(CMAKE_RELWITHDEBINFO_POSTFIX "_rd")
+
 add_executable(minimal minimal.cpp)
 target_link_libraries(minimal flip)
 add_test(NAME minimal COMMAND minimal "headless=true")
