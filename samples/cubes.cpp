@@ -6,22 +6,7 @@
 #include "flip/math.h"
 #include "flip/renderer.h"
 #include "imgui/imgui.h"
-
-const char* kFlip[] = {
-    "######### ###       ### ########",
-    "########  ###       ### ##########",
-    "###       ###           ###      ##",
-    "###       ###           ###      ##",
-    "###       ###           ###      ##",
-    "######    ###       ### ##########",
-    "#####     ###       ### ########",
-    "###       ###       ### ###",
-    "###       ###       ### ###",
-    "###       ###       ### ###",
-    "###       ###       ### ###",
-    "###       ######### ### ###",
-    "###       ######### ### ###",
-};
+#include "media/flip_128.h"
 
 // Uses draw and imgui features
 class Cubes : public flip::Application {
@@ -31,31 +16,37 @@ class Cubes : public flip::Application {
   }
 
  private:
+  // Decompresses RLE logo into an array of transforms, where each transform
+  // maps a pixel.
   void ComputeTransforms() {
     transforms_.clear();
 
-    // Letters
-    const auto nlines = sizeof(kFlip) / sizeof(kFlip[0]);
-    const float xoffset = std::strlen(kFlip[0]) / -2.f;
-    const float yoffset = nlines - 1;
+    const float kBoxSize = .1f;
+    const float xoffset = -flip::logo::kWidth * kBoxSize / 2.f;
+    const float yoffset = flip::logo::kHeight * kBoxSize;
+
     auto pos = HMM_Vec3{xoffset, yoffset, 0};
-    for (auto line = kFlip; line < kFlip + nlines;
-         ++line, pos.X = xoffset, pos.Y -= 1) {
-      for (auto c = *line; *c; ++c, pos.X += 1) {
-        if (*c == '#') {
-          transforms_.push_back(HMM_Translate(pos) * HMM_Scale(scale_) *
+    auto pixels = flip::logo::kPixels;
+    auto end = flip::logo::kPixels + sizeof(flip::logo::kPixels);
+    for (; pixels < end; ++pixels) {
+      if (*pixels == 0) {  // Next line
+        pos = HMM_Vec3{xoffset, pos.Y - kBoxSize, 0};
+        continue;
+      }
+      const int count = *pixels & 0x7f;
+      if (*pixels & 0x80) {  // Pixels on
+        for (int c = 0; c < count; ++c, pos.X += kBoxSize) {
+          transforms_.push_back(HMM_Translate(pos) *
+                                HMM_Scale(scale_ * kBoxSize) *
                                 HMM_Translate(HMM_Vec3{.5f, .5f, .5f}));
         }
+      } else {  // Pixels off
+        pos.X += kBoxSize * count;
       }
-    }
-
-    // Floor
-    if (show_floor_) {
-      transforms_.push_back(HMM_Scale(HMM_Vec3{50, 1, 50}) *
-                            HMM_Translate(HMM_Vec3{0.f, -.5f, 0.f}));
     }
   }
 
+  // Renders a box per transform
   virtual bool Display(flip::Renderer& _renderer) override {
     return _renderer.DrawShapes(transforms_, flip::Renderer::kCube,
                                 flip::kWhite);
@@ -64,8 +55,7 @@ class Cubes : public flip::Application {
   virtual bool Menu() override {
     if (ImGui::BeginMenu("Sample")) {
       bool recompute = false;
-      recompute |= ImGui::SliderFloat3("Scale", scale_.Elements, .1f, 5.f);
-      recompute |= ImGui::Checkbox("Show floor", &show_floor_);
+      recompute |= ImGui::SliderFloat3("Scale", scale_.Elements, .1f, 2.f);
 
       if (recompute) {
         ComputeTransforms();
@@ -77,8 +67,7 @@ class Cubes : public flip::Application {
   }
 
   std::vector<HMM_Mat4> transforms_;
-  HMM_Vec3 scale_ = {.8f, .8f, 3.f};
-  bool show_floor_ = true;
+  HMM_Vec3 scale_ = {.7f, .7f, .2f};
 };
 
 std::unique_ptr<flip::Application> InstantiateApplication() {
