@@ -15,7 +15,7 @@ class Texture : public flip::Application {
       return true;
     }
 
-    image_ = flip::LoadImage(flip::Load("media/texture.png"));
+    image_ = flip::SgAsyncImage("media/texture.png");
     sampler_ = SetupSampler(linear_);
 
     return true;
@@ -62,7 +62,7 @@ class Texture : public flip::Application {
   }
 
  private:
-  flip::SgImage image_;
+  flip::SgAsyncImage image_;
   flip::SgSampler sampler_;
 
   flip::Color color_ = flip::kYellow;

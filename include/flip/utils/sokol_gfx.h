@@ -11,45 +11,48 @@ namespace flip {
 template <typename _Id, void (*_Destroyer)(_Id)>
 class SgResource {
  public:
-  SgResource() noexcept : id_{SG_INVALID_ID} {}
-  explicit SgResource(_Id _id) noexcept : id_{_id} {}
-  SgResource(const SgResource&) = delete;
-  SgResource(SgResource&& _sr) noexcept { std::swap(id_, _sr.id_); }
-  ~SgResource() noexcept {
+  SgResource() = default;
+  explicit SgResource(_Id _id) : id_{_id} {}
+  ~SgResource() {
     if (id_.id != SG_INVALID_ID) {
       _Destroyer(id_);
     }
   }
 
-  _Id release() noexcept {
-    _Id id = id_;
-    id_ = {SG_INVALID_ID};
-    return id;
-  }
-
-  SgResource& operator=(SgResource&& _sr) noexcept {
+  // Movable
+  SgResource(SgResource&& _sr) { std::swap(id_, _sr.id_); }
+  SgResource& operator=(SgResource&& _sr) {
     if (this != std::addressof(_sr)) {
       std::swap(id_, _sr.id_);
     }
     return *this;
   }
 
+  // Disable copy
+  SgResource(const SgResource&) = delete;
   const SgResource& operator=(const SgResource&) = delete;
 
-  SgResource& operator=(std::nullptr_t) noexcept {
+  // Release ownership
+  _Id release() {
+    _Id id = id_;
+    id_ = {SG_INVALID_ID};
+    return id;
+  }
+
+  // Reset
+  void reset(_Id _id = _Id{SG_INVALID_ID}) { *this = SgResource(_id); }
+  void reset(SgResource&& _sr) { *this = _sr; }
+  SgResource& operator=(std::nullptr_t) {
     reset(nullptr);
     return *this;
   }
 
-  void reset(_Id _id = _Id{SG_INVALID_ID}) noexcept { *this = SgResource(_id); }
-  void reset(SgResource&& _sr) noexcept { *this = _sr; }
+  bool is_valid() const { return id_.id != SG_INVALID_ID; }
 
-  bool is_valid() const noexcept { return id_.id != SG_INVALID_ID; }
-
-  _Id id() const noexcept { return id_; }
+  _Id id() const { return id_; }
 
  private:
-  _Id id_ = {};
+  _Id id_ = {SG_INVALID_ID};
 };
 
 using SgBuffer = SgResource<sg_buffer, &sg_destroy_buffer>;
