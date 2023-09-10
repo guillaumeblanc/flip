@@ -63,7 +63,7 @@ void ImDrawer::Begin(const HMM_Mat4& _view_proj, const HMM_Mat4& _transform,
   auto it = pipelines_.find(_mode);
   if (it == pipelines_.end()) {
     sg_pipeline pip = sg_make_pipeline(sg_pipeline_desc{
-        .shader = shader_,
+        .shader = shader_.id(),
         .layout = {.buffers = {{.stride = 36}},
                    .attrs = {{.format = SG_VERTEXFORMAT_FLOAT3},
                              {.format = SG_VERTEXFORMAT_FLOAT4},
@@ -81,7 +81,7 @@ void ImDrawer::Begin(const HMM_Mat4& _view_proj, const HMM_Mat4& _transform,
     it = pipelines_.emplace(_mode, pip).first;
   }
 
-  sg_apply_pipeline(it->second);
+  sg_apply_pipeline(it->second.id());
 
   const auto mvp = _view_proj * _transform;
   sg_apply_uniforms(SG_SHADERSTAGE_VS, 0, {mvp.Elements[0], 64});
@@ -95,9 +95,9 @@ void ImDrawer::End(std::span<const ImVertex> _vertices, sg_image _image,
   sg_apply_bindings(sg_bindings{
       .vertex_buffers = {buffer_binding.id},
       .vertex_buffer_offsets = {buffer_binding.offset},
-      .fs = {
-          .images = {_image.id != SG_INVALID_ID ? _image : image_},
-          .samplers = {_sampler.id != SG_INVALID_ID ? _sampler : sampler_}}});
+      .fs = {.images = {_image.id != SG_INVALID_ID ? _image : image_.id()},
+             .samplers = {_sampler.id != SG_INVALID_ID ? _sampler
+                                                       : sampler_.id()}}});
   sg_draw(0, _vertices.size(), 1);
 }
 

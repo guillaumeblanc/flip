@@ -57,8 +57,8 @@ Imgui::Imgui() {
       .label = "flip:: imgui font",
   });
   auto font_desc = simgui_image_desc_t{
-      .image = font_image_,
-      .sampler = font_sampler_,
+      .image = font_image_.id(),
+      .sampler = font_sampler_.id(),
   };
   io.Fonts->TexID = simgui_imtextureid(simgui_make_image(&font_desc));
 }

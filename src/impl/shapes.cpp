@@ -63,7 +63,7 @@ bool Shapes::Initialize() {
 
   // Shader and pipeline object
   pipeline_ = MakeSgPipeline(sg_pipeline_desc{
-      .shader = shader_,
+      .shader = shader_.id(),
       .layout = {.buffers = {sshape_vertex_buffer_layout_state(),
                              {.stride = sizeof(HMM_Mat4),
                               .step_func = SG_VERTEXSTEP_PER_INSTANCE}},
@@ -150,13 +150,13 @@ bool Shapes::Initialize() {
 
 bool Shapes::Draw(Renderer::Shape _shape, Color _color, int _intances,
                   const BufferBinding& _models, HMM_Mat4& _view_proj) {
-  sg_apply_pipeline(pipeline_);
+  sg_apply_pipeline(pipeline_.id());
 
   auto bindings = sg_bindings{};
-  bindings.vertex_buffers[0] = vertex_buffer_;
+  bindings.vertex_buffers[0] = vertex_buffer_.id();
   bindings.vertex_buffers[1] = _models.id;
   bindings.vertex_buffer_offsets[1] = _models.offset;
-  bindings.index_buffer = index_buffer_;
+  bindings.index_buffer = index_buffer_.id();
   sg_apply_bindings(bindings);
 
   const auto uniforms = Uniforms{.vp = _view_proj, .color = _color};

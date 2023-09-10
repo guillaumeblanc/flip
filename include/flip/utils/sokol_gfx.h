@@ -23,14 +23,17 @@ class SgResource {
 
   _Id release() noexcept {
     _Id id = id_;
-    id_ = SG_INVALID_ID;
+    id_ = {SG_INVALID_ID};
     return id;
   }
 
   SgResource& operator=(SgResource&& _sr) noexcept {
-    std::swap(id_, _sr.id_);
+    if (this != std::addressof(_sr)) {
+      std::swap(id_, _sr.id_);
+    }
     return *this;
   }
+
   const SgResource& operator=(const SgResource&) = delete;
 
   SgResource& operator=(std::nullptr_t) noexcept {
@@ -39,10 +42,10 @@ class SgResource {
   }
 
   void reset(_Id _id = _Id{SG_INVALID_ID}) noexcept { *this = SgResource(_id); }
+  void reset(SgResource&& _sr) noexcept { *this = _sr; }
 
   bool is_valid() const noexcept { return id_.id != SG_INVALID_ID; }
 
-  operator _Id() const noexcept { return id_; }
   _Id id() const noexcept { return id_; }
 
  private:

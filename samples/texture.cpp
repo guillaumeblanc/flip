@@ -29,7 +29,7 @@ class Texture : public flip::Application {
                                 .blending = true}};
 
     if (texture_) {
-      drawer.texture(image_, sampler_);
+      drawer.texture(image_.id(), sampler_.id());
     }
 
     drawer.color(color_);

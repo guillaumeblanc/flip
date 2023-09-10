@@ -46,7 +46,7 @@ class Custom : public flip::Application {
 
     // A minimal pipeline state object
     pipeline_ = flip::MakeSgPipeline(sg_pipeline_desc{
-        .shader = shader_,
+        .shader = shader_.id(),
         .layout = {.buffers = {{.stride = 28}},
                    .attrs = {{.format = SG_VERTEXFORMAT_FLOAT3},
                              {.format = SG_VERTEXFORMAT_FLOAT4}}},
@@ -57,9 +57,9 @@ class Custom : public flip::Application {
   }
 
   virtual bool Display(flip::Renderer& _renderer) override {
-    sg_apply_pipeline(pipeline_);
+    sg_apply_pipeline(pipeline_.id());
 
-    sg_buffer b = vertex_buffer_;
+    sg_buffer b = vertex_buffer_.id();
     auto bind = sg_bindings{.vertex_buffers = {b}};
     sg_apply_bindings(&bind);
     sg_apply_uniforms(SG_SHADERSTAGE_VS, 0,
