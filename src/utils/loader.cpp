@@ -26,12 +26,12 @@ AsyncBuffer::AsyncBuffer(const char* _filename, const Completion& _completion,
                .completion = new AsyncBuffer::Completion{_completion}};
 
   auto stream_buffer = malloc(_buffering_size);
-  handle_ =
-      sfetch_send(sfetch_request_t{.path = _filename,
-                                   .callback = &FetchCallback,
-                                   .chunk_size = _buffering_size,
-                                   .buffer = {stream_buffer, _buffering_size},
-                                   .user_data = SFETCH_RANGE(user_data)});
+  handle_ = sfetch_send(
+      sfetch_request_t{.path = _filename,
+                       .callback = &FetchCallback,
+                       .chunk_size = static_cast<uint32_t>(_buffering_size),
+                       .buffer = {stream_buffer, _buffering_size},
+                       .user_data = SFETCH_RANGE(user_data)});
   assert(sfetch_handle_valid(handle_));
 }
 
