@@ -10,9 +10,10 @@ class ImDrawing : public flip::Application {
 
   virtual LoopControl Update(float _time, float _dt, float _inv_dt) override {
     transform1_ = HMM_Rotate_RH(_time, HMM_Vec3{0, 1, 0}) *
-                  HMM_Translate(HMM_Vec3{0, 3, 0}) *
+                  HMM_Translate(HMM_Vec3{0, 6, 0}) *
                   HMM_Rotate_RH(HMM_PI / 4,
-                                HMM_Vec3{0, std::cos(_time), std::sin(_time)});
+                                HMM_Vec3{std::cos(_time), std::sin(_time), 0}) *
+                  HMM_Scale(HMM_Vec3{3, 3, 3});
     transform2_ = transform1_ * HMM_Rotate_RH(_time, HMM_Vec3{0, 1, 0});
 
     return LoopControl::kContinue;
@@ -24,7 +25,7 @@ class ImDrawing : public flip::Application {
       auto drawer = flip::ImDraw{
           _renderer, transform2_, {.type = SG_PRIMITIVETYPE_LINE_STRIP}};
 
-      drawer.color(0, 1, 0, 1);
+      drawer.color(flip::kGreen);
 
       drawer.vertex(-1, -1, 0);
       drawer.vertex(-1, 1, 0);
@@ -41,7 +42,7 @@ class ImDrawing : public flip::Application {
                                   .cull_mode = SG_CULLMODE_NONE,
                                   .blending = true}};
 
-      drawer.color(1, 1, 1, .8f);
+      drawer.color(flip::kYellow, .7f);
 
       drawer.vertex(-1, 1, 0);
       drawer.vertex(-1, -1, 0);
