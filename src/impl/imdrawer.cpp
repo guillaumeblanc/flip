@@ -12,8 +12,7 @@ ImDrawer::ImDrawer() {
   shader_desc.vs.uniform_blocks[0] = {
       .size = sizeof(HMM_Mat4),
       .uniforms = {{.name = "mvp", .type = SG_UNIFORMTYPE_MAT4}}};
-  shader_desc.vs.source =
-      "#version 330\n"
+  shader_desc.vs.source = VS_VERSION
       "uniform mat4 mvp;\n"
       "layout(location=0) in vec3 position;\n"
       "layout(location=1) in vec4 color;\n"
@@ -29,8 +28,7 @@ ImDrawer::ImDrawer() {
   shader_desc.fs.samplers[0] = {.used = true};
   shader_desc.fs.image_sampler_pairs[0] = {
       .used = true, .image_slot = 0, .sampler_slot = 0, .glsl_name = "tex"};
-  shader_desc.fs.source =
-      "#version 330\n"
+  shader_desc.fs.source = FS_VERSION
       "uniform sampler2D tex;\n"
       "in vec2 vertex_uv;\n"
       "in vec4 vertex_color;\n"

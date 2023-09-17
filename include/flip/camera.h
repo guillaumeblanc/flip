@@ -19,7 +19,6 @@ class Camera {
  public:
   virtual ~Camera() = default;
 
-  virtual bool Initialize() { return true; }
   virtual bool Update(float _time, float _dt, float _inv_dt) { return true; }
   virtual bool Event(const sapp_event& _event) { return false; }
   virtual bool Menu() { return true; }

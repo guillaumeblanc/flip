@@ -5,8 +5,17 @@
 
 #include "sokol/sokol_gfx.h"
 
-namespace flip {
+#if defined(SOKOL_GLCORE33)
+#define VS_VERSION "#version 330\n"
+#define FS_VERSION "#version 330\n"
+#elif defined(SOKOL_GLES3)
+#define VS_VERSION "#version 300 es\n  precision highp float;\n"
+#define FS_VERSION "#version 300 es\n  precision mediump float;\n"
+#else
+#error "Unknown version"
+#endif
 
+namespace flip {
 // unique_ptr like sokol resource object.
 template <typename _Id, void (*_Destroyer)(_Id)>
 class SgResource {
@@ -86,7 +95,8 @@ struct BufferBinding {
   int offset;
 };
 
-// Dynamic buffer, which size will stabilize to the minimum required each frame.
+// Dynamic buffer, which size will stabilize to the minimum required each
+// frame.
 class SgDynamicBuffer {
  public:
   BufferBinding Append(std::span<const std::byte> _data);

@@ -13,10 +13,10 @@ class Custom : public flip::Application {
       return true;
     }
     // A vertex buffer
-    const float vertices[] = {// positions       // color
-                              0.f,   10.f,  0.f, 0.f, 1.f, 0.f, 1.f,
-                              10.f,  -10.f, 0.f, 1.f, 0.f, 0.f, 1.f,
-                              -10.f, -10.f, 0.f, 0.f, 0.f, 1.f, 1.f};
+    const float vertices[] = {// positions     // color
+                              0.f,  0.f,  0.f, 0.f, 1.f, 0.f, 1.f,
+                              -5.f, 10.f, 0.f, 1.f, 0.f, 0.f, 1.f,
+                              5.f,  10.f, 0.f, 0.f, 0.f, 1.f, 1.f};
     vertex_buffer_ =
         flip::MakeSgBuffer(sg_buffer_desc{.data = SG_RANGE(vertices)});
 
@@ -25,8 +25,7 @@ class Custom : public flip::Application {
     shader_desc.vs.uniform_blocks[0] = {
         .size = sizeof(HMM_Mat4),
         .uniforms = {{.name = "mvp", .type = SG_UNIFORMTYPE_MAT4}}};
-    shader_desc.vs.source =
-        "#version 330\n"
+    shader_desc.vs.source = VS_VERSION
         "uniform mat4 mvp;\n"
         "layout(location=0) in vec3 position;\n"
         "layout(location=1) in vec4 color;\n"
@@ -35,8 +34,7 @@ class Custom : public flip::Application {
         "  gl_Position = mvp * vec4(position, 1.);\n"
         "  vertex_color = color;\n"
         "}\n";
-    shader_desc.fs.source =
-        "#version 330\n"
+    shader_desc.fs.source = FS_VERSION
         "in vec4 vertex_color;\n"
         "out vec4 frag_color;\n"
         "void main() {\n"

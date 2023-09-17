@@ -12,7 +12,7 @@ class Shapes {
   Shapes() = default;
   ~Shapes() = default;
 
-  bool Initialize();
+  void Initialize();
 
   bool Draw(Renderer::Shape _shape, Color _color, int _intances,
             const BufferBinding& _models, HMM_Mat4& _view_proj);

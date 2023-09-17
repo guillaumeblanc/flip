@@ -1,6 +1,7 @@
 #include "shapes.h"
 
 #include <cassert>
+#include <vector>
 
 // Sokol library, do not sort includes
 // clang-format off
@@ -16,13 +17,12 @@ struct Uniforms {
   Color color;
 };
 
-bool Shapes::Initialize() {
+void Shapes::Initialize() {
   bool success = true;
 
   // Create shader
   auto shader_desc = sg_shader_desc{.label = "flip: Shapes"};
-  shader_desc.vs.source =
-      "#version 330\n"
+  shader_desc.vs.source = VS_VERSION
       "uniform mat4 vp;\n"
       "uniform vec4 color;\n"
       "layout(location=0) in vec4 position;\n"
@@ -46,8 +46,7 @@ bool Shapes::Initialize() {
       .size = sizeof(Uniforms),
       .uniforms = {{.name = "vp", .type = SG_UNIFORMTYPE_MAT4},
                    {.name = "color", .type = SG_UNIFORMTYPE_FLOAT4}}};
-  shader_desc.fs.source =
-      "#version 330\n"
+  shader_desc.fs.source = FS_VERSION
       "in vec3 vertex_normal;\n"
       "in vec4 vertex_color;\n"
       "out vec4 frag_color;\n"
@@ -91,11 +90,14 @@ bool Shapes::Initialize() {
       .label = "flip: Shapes"});
 
   // Generate shape geometries
-  sshape_vertex_t vertices[6 * 1024];
-  uint16_t indices[16 * 1024];
+  auto vertices = std::vector<sshape_vertex_t>(4 << 10);
+  auto indices = std::vector<uint16_t>(12 << 10);
+
   auto buf = sshape_buffer_t{
-      .vertices = {.buffer = SSHAPE_RANGE(vertices)},
-      .indices = {.buffer = SSHAPE_RANGE(indices)},
+      .vertices = {.buffer = {vertices.data(),
+                              vertices.size() * sizeof(sshape_vertex_t)}},
+      .indices = {.buffer = {indices.data(),
+                             indices.size() * sizeof(uint16_t)}},
   };
   const auto box =
       sshape_box_t{.width = 1.f, .height = 1.f, .depth = 1.f, .tiles = 1};
@@ -105,10 +107,12 @@ bool Shapes::Initialize() {
   };
   buf = sshape_build_box(&buf, &box);
   draws_[Renderer::Shape::kCube] = to_range(sshape_element_range(&buf));
+  assert(buf.valid);
 
   const auto plane = sshape_plane_t{.width = 1.f, .depth = 1.f, .tiles = 1};
   buf = sshape_build_plane(&buf, &plane);
   draws_[Renderer::Shape::kPlane] = to_range(sshape_element_range(&buf));
+  assert(buf.valid);
 
   const auto sphere = sshape_sphere_t{
       .radius = .5f,
@@ -117,6 +121,7 @@ bool Shapes::Initialize() {
   };
   buf = sshape_build_sphere(&buf, &sphere);
   draws_[Renderer::Shape::kSphere] = to_range(sshape_element_range(&buf));
+  assert(buf.valid);
 
   const auto cylinder = sshape_cylinder_t{
       .radius = .5f,
@@ -126,6 +131,7 @@ bool Shapes::Initialize() {
   };
   buf = sshape_build_cylinder(&buf, &cylinder);
   draws_[Renderer::Shape::kCylinder] = to_range(sshape_element_range(&buf));
+  assert(buf.valid);
 
   const auto torus = sshape_torus_t{
       .radius = .4f,
@@ -144,8 +150,6 @@ bool Shapes::Initialize() {
   auto ibuf_desc = sshape_index_buffer_desc(&buf);
   ibuf_desc.label = "flip: shapes index buffer";
   index_buffer_ = MakeSgBuffer(ibuf_desc);
-
-  return buf.valid;
 }
 
 bool Shapes::Draw(Renderer::Shape _shape, Color _color, int _intances,

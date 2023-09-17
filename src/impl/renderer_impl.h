@@ -16,7 +16,6 @@ class RendererImpl : public Renderer {
   virtual ~RendererImpl();
 
  protected:
-  virtual bool Initialize() override;
   virtual bool Event(const sapp_event& _event) override;
   virtual bool Menu() override;
 

@@ -36,7 +36,6 @@ class Renderer {
  public:
   virtual ~Renderer() = default;
 
-  virtual bool Initialize() { return true; }
   virtual bool Event(const sapp_event& _event) { return false; }
   virtual bool Menu() { return true; }
 

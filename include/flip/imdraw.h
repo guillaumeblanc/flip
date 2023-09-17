@@ -49,6 +49,9 @@ class ImDraw {
   void uv(const HMM_Vec2& _uv) { vertex_.uv = _uv; }
   void uv(float _u, float _v) { vertex_.uv = {_u, _v}; }
   void color(const Color& _color) { vertex_.color = _color; }
+  void color(const Color& _color, float _a) {
+    vertex_.color = {_color.r, _color.g, _color.b, _a};
+  }
   void color(float _r, float _g, float _b, float _a) {
     vertex_.color = {_r, _g, _b, _a};
   }

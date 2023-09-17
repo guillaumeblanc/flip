@@ -1,3 +1,5 @@
+
+
 # Dear imgui
 add_library(imgui
   ${PROJECT_SOURCE_DIR}/extern/imgui/imconfig.h
@@ -26,7 +28,14 @@ target_compile_definitions(stb_image PUBLIC STBI_NO_STDIO)
 add_library(sokol
   $<IF:$<BOOL:${APPLE}>, extern/sokol/sokol.mm, extern/sokol/sokol.cpp>
   extern/sokol/sokol.h)
-target_compile_definitions(sokol PUBLIC SOKOL_GLCORE33 SOKOL_NO_ENTRY)
+if(EMSCRIPTEN)
+  target_compile_definitions(sokol PUBLIC SOKOL_GLES3)
+  target_link_options(sokol PUBLIC -sUSE_WEBGL2=1)
+  target_link_options(sokol PUBLIC -sMALLOC=emmalloc)
+else()
+  target_compile_definitions(sokol PUBLIC SOKOL_GLCORE33)
+endif()
+target_compile_definitions(sokol PUBLIC SOKOL_NO_ENTRY)
 target_include_directories(sokol PUBLIC ${PROJECT_SOURCE_DIR}/extern)
 target_include_directories(sokol PRIVATE ${PROJECT_SOURCE_DIR}/extern/sokol)
 
@@ -39,7 +48,7 @@ if(APPLE)
   target_link_libraries(sokol ${QuartzCore} ${Cocoa})
 endif()
 
-if(UNIX AND NOT APPLE)
+if(UNIX AND NOT APPLE AND NOT EMSCRIPTEN)
   find_package(X11 REQUIRED)
 
   target_include_directories(sokol PRIVATE ${X11_INCLUDE_DIR})

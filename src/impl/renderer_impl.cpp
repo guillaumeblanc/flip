@@ -53,11 +53,7 @@ struct RendererImpl::Resources {
   Shapes shapes;
 };
 
-RendererImpl::RendererImpl() {}
-
-bool RendererImpl::Initialize() {
-  bool success = true;
-
+RendererImpl::RendererImpl() {
   // Setups sokol gfx
   const auto& app_desc = sapp_query_desc();
   sg_setup(sg_desc{.logger = {.func = app_desc.logger.func,
@@ -68,9 +64,7 @@ bool RendererImpl::Initialize() {
   resources_ = std::make_unique<Resources>();
 
   // Initialize shape resources
-  success &= resources_->shapes.Initialize();
-
-  return success;
+  resources_->shapes.Initialize();
 }
 
 RendererImpl::~RendererImpl() {
