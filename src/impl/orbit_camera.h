@@ -33,10 +33,10 @@ class OrbitCamera : public Camera {
   const float kMoveFactor = .002f;
   const float kZoomFactor = .5f;
 
-  float distance_ = 20.f;
-  float latitude_ = .2f;
+  float distance_ = 10.f;
+  float latitude_ = 0.f;
   float longitude_ = 0.f;
-  CameraView camera_view_ = {.fov = kPi_2};
+  CameraView camera_view_ = {.fov = kPi_2, .center = {0, 5, 0}};
 };
 
 }  // namespace flip
