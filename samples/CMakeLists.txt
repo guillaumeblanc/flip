@@ -1,19 +1,8 @@
-
-# Modifies output directory for all executables, so media folder is relative
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ".")
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG ".")
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE ".")
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_MINSIZEREL ".")
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELWITHDEBINFO ".")
-
-set(CMAKE_DEBUG_POSTFIX "_d")
-set(CMAKE_RELEASE_POSTFIX "_r")
-set(CMAKE_MINSIZEREL_POSTFIX "_rs")
-set(CMAKE_RELWITHDEBINFO_POSTFIX "_rd")
-
 function(target_emscripten _target)
-  set(FLIP_TARGET_NAME ${_target})
-  configure_file("${PROJECT_SOURCE_DIR}/src/wasm.html" "${_target}.html")
+  if(EMSCRIPTEN)
+    set(FLIP_TARGET_NAME ${_target})
+    configure_file("${PROJECT_SOURCE_DIR}/src/wasm.html" "${_target}.html")
+  endif()
 endfunction()
 
 add_executable(minimal minimal.cpp)

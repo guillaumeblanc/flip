@@ -1,0 +1,16 @@
+name: CI-WASM
+on: [push, pull_request]
+jobs:
+  Test:
+    name: CI-WASM
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+  
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        submodules: recursive
+
+    - name: Build
+      run: ./em-build.sh

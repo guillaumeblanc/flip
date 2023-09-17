@@ -11,3 +11,6 @@
 [submodule "extern/stb"]
 	path = extern/stb
 	url = https://github.com/nothings/stb.git
+[submodule "extern/emsdk"]
+	path = extern/emsdk
+	url = https://github.com/emscripten-core/emsdk.git
