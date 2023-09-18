@@ -132,6 +132,8 @@ bool RendererImpl::Menu() {
 
 bool RendererImpl::DrawShapes(std::span<const HMM_Mat4> _transforms,
                               Shape _shape, Color _color) {
+  assert(_shape >= Shape::kPlane && _shape < Shape::kCount);
+
   // Updates model space matrices buffer
   auto buffer_binding = resources_->transforms_buffer.Append(
       std::as_bytes(std::span{_transforms}));

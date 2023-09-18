@@ -48,18 +48,22 @@ class Shapes : public flip::Application {
 
   // Renders a box per transform
   virtual bool Display(flip::Renderer& _renderer) override {
-    return _renderer.DrawShapes(transforms_, flip::Renderer::kCube,
-                                flip::kWhite);
+    return _renderer.DrawShapes(transforms_, shape_, flip::kWhite);
   }
 
   virtual bool Menu() override {
     if (ImGui::BeginMenu("Sample")) {
       bool recompute = false;
       recompute |= ImGui::SliderFloat3("Scale", scale_.Elements, .1f, 2.f);
-
       if (recompute) {
         ComputeTransforms();
       }
+
+      int shape = static_cast<int>(shape_);
+      ImGui::Combo("Shape type", &shape,
+                   "Plane\0Cube\0Sphere\0Cylinder\0Torus\0");
+      shape_ = static_cast<flip::Renderer::Shape>(shape);
+
       ImGui::EndMenu();
     }
 
@@ -67,7 +71,8 @@ class Shapes : public flip::Application {
   }
 
   std::vector<HMM_Mat4> transforms_;
-  HMM_Vec3 scale_ = {.7f, .7f, .2f};
+  flip::Renderer::Shape shape_ = flip::Renderer::Shape::kSphere;
+  HMM_Vec3 scale_ = {.8f, .8f, .8f};
 };
 
 std::unique_ptr<flip::Application> InstantiateApplication() {
