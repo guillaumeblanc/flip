@@ -1,16 +1,35 @@
 name: CI-WASM
-on: [push, pull_request]
+on:
+  push:
+    branches: ["main", "feature/wasm"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
 jobs:
-  Test:
-    name: CI-WASM
+  build:
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
-  
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
     steps:
     - uses: actions/checkout@v3
       with:
         submodules: recursive
-
     - name: Build
       run: ./em-build.sh
+    - name: Setup Pages
+      uses: actions/configure-pages@v3
+    - name: Upload artifact
+      uses: actions/upload-pages-artifact@v2
+      with:
+        path: build-wasm/samples/
+    - name: Deploy to GitHub Pages
+      id: deployment
+      uses: actions/deploy-pages@v2
