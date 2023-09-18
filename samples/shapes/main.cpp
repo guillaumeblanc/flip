@@ -5,13 +5,13 @@
 #include "flip/application.h"
 #include "flip/math.h"
 #include "flip/renderer.h"
+#include "flip_128.h"
 #include "imgui/imgui.h"
-#include "media/flip_128.h"
 
 // Uses draw and imgui features
-class Cubes : public flip::Application {
+class Shapes : public flip::Application {
  public:
-  Cubes() : flip::Application(Settings{.title = "Cubes"}) {
+  Shapes() : flip::Application(Settings{.title = "Shapes"}) {
     ComputeTransforms();
   }
 
@@ -71,5 +71,5 @@ class Cubes : public flip::Application {
 };
 
 std::unique_ptr<flip::Application> InstantiateApplication() {
-  return std::make_unique<Cubes>();
+  return std::make_unique<Shapes>();
 }

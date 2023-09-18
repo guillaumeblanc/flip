@@ -4,9 +4,9 @@
 #include "flip/imdraw.h"
 
 // Implement the minimal flip::Application.
-class ImDrawing : public flip::Application {
+class ImDraw : public flip::Application {
  public:
-  ImDrawing() : flip::Application(Settings{.title = "ImDrawing"}) {}
+  ImDraw() : flip::Application(Settings{.title = "ImDraw"}) {}
 
   virtual LoopControl Update(float _time, float _dt, float _inv_dt) override {
     transform1_ = HMM_Rotate_RH(_time, HMM_Vec3{0, 1, 0}) *
@@ -60,5 +60,5 @@ class ImDrawing : public flip::Application {
 
 // Application instantiation function
 std::unique_ptr<flip::Application> InstantiateApplication() {
-  return std::make_unique<ImDrawing>();
+  return std::make_unique<ImDraw>();
 }
