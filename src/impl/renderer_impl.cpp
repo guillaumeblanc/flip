@@ -113,6 +113,14 @@ void RendererImpl::EndImDraw(std::span<const ImVertex> _vertices,
 }
 
 bool RendererImpl::Menu() {
+  if (ImGui::BeginMenu("Info")) {
+    const int w = sapp_width(), h = sapp_height();
+    ImGui::LabelText("Resolution", "%dx%d", w, h);
+    const float dpi = sapp_dpi_scale();
+    ImGui::LabelText("DPI scale", "%.1g", dpi);
+    ImGui::EndMenu();
+  }
+
   // Sokol gl debug menu
   auto& ctx = resources_->sg_imgui.context;
   if (ImGui::BeginMenu("Debug")) {
