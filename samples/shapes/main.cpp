@@ -5,8 +5,8 @@
 #include "flip/application.h"
 #include "flip/math.h"
 #include "flip/renderer.h"
-#include "flip_128.h"
 #include "imgui/imgui.h"
+#include "logo.h"
 
 // Uses draw and imgui features
 class Shapes : public flip::Application {
@@ -37,8 +37,7 @@ class Shapes : public flip::Application {
       if (*pixels & 0x80) {  // Pixels on
         for (int c = 0; c < count; ++c, pos.X += kBoxSize) {
           transforms_.push_back(HMM_Translate(pos) *
-                                HMM_Scale(scale_ * kBoxSize) *
-                                HMM_Translate(HMM_Vec3{.5f, .5f, .5f}));
+                                HMM_Scale(scale_ * kBoxSize));
         }
       } else {  // Pixels off
         pos.X += kBoxSize * count;
@@ -54,7 +53,8 @@ class Shapes : public flip::Application {
   virtual bool Menu() override {
     if (ImGui::BeginMenu("Sample")) {
       bool recompute = false;
-      recompute |= ImGui::SliderFloat3("Scale", scale_.Elements, .1f, 2.f);
+      recompute |= ImGui::SliderFloat3("Scale", scale_.Elements, .1f, 100.f,
+                                       "%.2g", ImGuiSliderFlags_Logarithmic);
       if (recompute) {
         ComputeTransforms();
       }
