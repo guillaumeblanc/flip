@@ -2,7 +2,7 @@ name: CI-WASM
 
 on:
   push:
-    branches: ["main", "feature/wasm"]
+    branches: ["main"]
   workflow_dispatch:
 
 permissions:
