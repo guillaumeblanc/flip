@@ -21,33 +21,33 @@ class Shapes : public flip::Application {
   void ComputeTransforms() {
     transforms_.clear();
 
-    const float kBoxSize = .1f;
-    const float xoffset = -flip::logo::kWidth * kBoxSize / 2.f;
-    const float yoffset = flip::logo::kHeight * kBoxSize;
+    const float kShapeSize = .1f;
+    const float xoffset = -flip::logo::kWidth * kShapeSize / 2.f;
+    const float yoffset = flip::logo::kHeight * kShapeSize;
 
     auto pos = HMM_Vec3{xoffset, yoffset, 0};
     auto pixels = flip::logo::kPixels;
     auto end = flip::logo::kPixels + sizeof(flip::logo::kPixels);
     for (; pixels < end; ++pixels) {
       if (*pixels == 0) {  // Next line
-        pos = HMM_Vec3{xoffset, pos.Y - kBoxSize, 0};
+        pos = HMM_Vec3{xoffset, pos.Y - kShapeSize, 0};
         continue;
       }
       const int count = *pixels & 0x7f;
       if (*pixels & 0x80) {  // Pixels on
-        for (int c = 0; c < count; ++c, pos.X += kBoxSize) {
+        for (int c = 0; c < count; ++c, pos.X += kShapeSize) {
           transforms_.push_back(HMM_Translate(pos) *
-                                HMM_Scale(scale_ * kBoxSize));
+                                HMM_Scale(scale_ * kShapeSize));
         }
       } else {  // Pixels off
-        pos.X += kBoxSize * count;
+        pos.X += kShapeSize * count;
       }
     }
   }
 
   // Renders a box per transform
   virtual bool Display(flip::Renderer& _renderer) override {
-    return _renderer.DrawShapes(transforms_, shape_, flip::kWhite);
+    return _renderer.DrawShapes(transforms_, shape_, color_);
   }
 
   virtual bool Menu() override {
@@ -64,6 +64,8 @@ class Shapes : public flip::Application {
                    "Plane\0Cube\0Sphere\0Cylinder\0Torus\0");
       shape_ = static_cast<flip::Renderer::Shape>(shape);
 
+      ImGui::ColorPicker3("Shape color", color_.rgba);
+
       ImGui::EndMenu();
     }
 
@@ -73,6 +75,7 @@ class Shapes : public flip::Application {
   std::vector<HMM_Mat4> transforms_;
   flip::Renderer::Shape shape_ = flip::Renderer::Shape::kSphere;
   HMM_Vec3 scale_ = {.8f, .8f, .8f};
+  flip::Color color_ = flip::kWhite;
 };
 
 std::unique_ptr<flip::Application> InstantiateApplication() {

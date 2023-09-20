@@ -4,7 +4,6 @@
 union HMM_Mat4;
 struct sapp_event;
 
-// TEMP
 struct sg_image;
 struct sg_sampler;
 
