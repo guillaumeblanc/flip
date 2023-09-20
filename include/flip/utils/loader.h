@@ -38,7 +38,7 @@ class AsyncBuffer {
   AsyncBuffer& operator=(const AsyncBuffer&) = delete;
 
  private:
-  // Important to use a static function, as this is movable.
+  // Important to use a static function, as *this is movable.
   static void FetchCallback(const sfetch_response_t* _reponse);
 
   sfetch_handle_t handle_ = {};
@@ -66,7 +66,9 @@ class SgAsyncImage {
   sg_image id() const { return image_.id(); }
 
  private:
-  // Important to use a static function, as this is movable.
+  // Important to use a static function, as *this is movable.
+  // This function will only be called if buffer_ isn't deleted / cancelled.
+  // Hence it's safe to pass it image_;
   static void Completed(sg_image _image, bool _successs,
                         std::span<const std::byte> _buffer,
                         const char* _filename);
