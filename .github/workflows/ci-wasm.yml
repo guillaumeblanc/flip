@@ -33,7 +33,13 @@ jobs:
       uses: actions/download-artifact@v3
       with:
         name: site-samples
-        path: site
+        path: ./site
+    - name: Build
+      uses: actions/jekyll-build-pages@v1
+      with:
+        source: ./samples/site
+        destination: ./site
+        verbose: true
     - name: Upload artifact
       uses: actions/upload-pages-artifact@v2
       with:

@@ -1,6 +1,5 @@
 set(FLIP_SITE "${PROJECT_BINARY_DIR}/site/")
 file(MAKE_DIRECTORY ${FLIP_SITE})
-file(COPY_FILE "index.html" "${FLIP_SITE}index.html")
 
 function(target_emscripten _target)
   if(EMSCRIPTEN)
