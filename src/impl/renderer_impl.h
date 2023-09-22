@@ -3,9 +3,6 @@
 
 #include "flip/renderer.h"
 
-// math
-#include "hmm/HandmadeMath.h"
-
 namespace flip {
 struct CameraView;
 

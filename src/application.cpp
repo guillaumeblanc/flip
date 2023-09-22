@@ -1,9 +1,10 @@
+#include "flip/application.h"
+
 #include <cassert>
 #include <cstdlib>
 #include <filesystem>
 #include <memory>
 
-#include "flip/application.h"
 #include "flip/camera.h"
 #include "flip/renderer.h"
 #include "impl/factory.h"
@@ -163,8 +164,8 @@ class ApplicationCb {
       // Overloaded application display
       success &= application_->Display(*renderer_);
 
-      success &= renderer_->DrawGrids({&kIdentity4, 1}, 20);
-      success &= renderer_->DrawAxes({&kIdentity4, 1});
+      success &= renderer_->DrawGrid(kIdentity4, 20);
+      success &= renderer_->DrawAxis(kIdentity4);
 
       // Gui
       success &= application_->Gui();
