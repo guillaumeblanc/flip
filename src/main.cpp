@@ -35,7 +35,6 @@ class ApplicationCb {
     sargs_setup(sargs_desc{.argc = _argc, .argv = _argv});
 
     auto app_cb = std::make_unique<ApplicationCb>();
-
     if (app_cb->headless_) {
       // Implement a basic headless loop
       app_cb->Init();
@@ -44,9 +43,8 @@ class ApplicationCb {
       }
       app_cb.release()->Cleanup();
     } else {
-      const auto& settings = app_cb->application_->settings();
-
       // Setup and run sapp
+      const auto& settings = app_cb->application_->settings();
       sapp_run(sapp_desc{
           .user_data = app_cb.release(),
           .init_userdata_cb =

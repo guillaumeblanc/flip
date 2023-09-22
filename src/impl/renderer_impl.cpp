@@ -89,7 +89,7 @@ void RendererImpl::BeginDefaultPass(const CameraView& _view) {
   const auto action =
       sg_pass_action{.colors = {{.load_action = SG_LOADACTION_CLEAR,
                                  .store_action = SG_STOREACTION_STORE,
-                                 .clear_value = {.1f, .1f, .1f, 1.f}}}};
+                                 .clear_value = {.15f, .15f, .15f, 1.f}}}};
 
   sg_begin_default_pass(&action, sapp_width(), sapp_height());
 
@@ -183,6 +183,7 @@ bool RendererImpl::DrawGrids(std::span<const HMM_Mat4> _transforms,
       auto drawer = ImDraw{*this,
                            transform,
                            {.type = SG_PRIMITIVETYPE_TRIANGLE_STRIP,
+                            .z_write = false,
                             .cull_mode = SG_CULLMODE_NONE,
                             .blending = true}};
 
@@ -197,7 +198,8 @@ bool RendererImpl::DrawGrids(std::span<const HMM_Mat4> _transforms,
   // Opaque grid lines
   {
     for (auto& transform : _transforms) {
-      auto drawer = ImDraw{*this, transform, {.type = SG_PRIMITIVETYPE_LINES}};
+      auto drawer = ImDraw{
+          *this, transform, {.type = SG_PRIMITIVETYPE_LINES, .z_write = false}};
 
       drawer.color(.9f, .9f, .9f, 1.f);
 
