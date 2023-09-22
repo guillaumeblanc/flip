@@ -8,6 +8,7 @@ class ImDraw : public flip::Application {
  public:
   ImDraw() : flip::Application(Settings{.title = "ImDraw"}) {}
 
+ private:
   virtual LoopControl Update(float _time, float _dt, float _inv_dt) override {
     transform1_ = HMM_Rotate_RH(_time, HMM_Vec3{0, 1, 0}) *
                   HMM_Translate(HMM_Vec3{0, 6, 0}) *
@@ -53,7 +54,6 @@ class ImDraw : public flip::Application {
     return true;
   }
 
- private:
   HMM_Mat4 transform1_;
   HMM_Mat4 transform2_;
 };

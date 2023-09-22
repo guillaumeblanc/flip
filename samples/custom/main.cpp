@@ -8,6 +8,7 @@ class Custom : public flip::Application {
  public:
   Custom() : flip::Application(Settings{.title = "Custom"}) {}
 
+ private:
   virtual bool Initialize(bool _headless) override {
     if (_headless) {
       return true;
@@ -57,8 +58,7 @@ class Custom : public flip::Application {
   virtual bool Display(flip::Renderer& _renderer) override {
     sg_apply_pipeline(pipeline_.id());
 
-    sg_buffer b = vertex_buffer_.id();
-    auto bind = sg_bindings{.vertex_buffers = {b}};
+    auto bind = sg_bindings{.vertex_buffers = {vertex_buffer_.id()}};
     sg_apply_bindings(&bind);
     sg_apply_uniforms(SG_SHADERSTAGE_VS, 0,
                       {_renderer.GetViewProj().Elements[0], 64});
@@ -67,7 +67,6 @@ class Custom : public flip::Application {
     return true;
   }
 
- private:
   flip::SgBuffer vertex_buffer_;
   flip::SgShader shader_;
   flip::SgPipeline pipeline_;

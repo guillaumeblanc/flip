@@ -1,5 +1,6 @@
 #include "flip/utils/profile.h"
 
+#include <algorithm>
 #include <numeric>
 
 #include "sokol/sokol_time.h"

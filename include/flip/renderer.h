@@ -1,7 +1,9 @@
 #pragma once
 #include <span>
 
-union HMM_Mat4;
+// math
+#include "hmm/HandmadeMath.h"
+
 struct sapp_event;
 
 struct sg_image;
@@ -62,13 +64,22 @@ class Renderer {
     kTorus,     // Radius of .4, ring radius of .1, with origin at torus center
     kCount
   };
+  bool DrawShape(const HMM_Mat4& _transform, Shape _shape, Color _color) {
+    return DrawShapes({&_transform, 1}, _shape, _color);
+  }
   virtual bool DrawShapes(std::span<const HMM_Mat4> _transforms, Shape _shape,
                           Color _color) = 0;
 
   // Renders xyz coordinate system.
+  bool DrawAxis(const HMM_Mat4& _transform) {
+    return DrawAxes({&_transform, 1});
+  }
   virtual bool DrawAxes(std::span<const HMM_Mat4> _transforms) = 0;
 
   // Renders yz grids of _cells, with origin at plane center.
+  bool DrawGrid(const HMM_Mat4& _transform, int _cells) {
+    return DrawGrids({&_transform, 1}, _cells);
+  }
   virtual bool DrawGrids(std::span<const HMM_Mat4> _transforms, int _cells) = 0;
 
  protected:

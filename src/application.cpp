@@ -1,9 +1,10 @@
+#include "flip/application.h"
+
 #include <cassert>
 #include <cstdlib>
 #include <filesystem>
 #include <memory>
 
-#include "flip/application.h"
 #include "flip/camera.h"
 #include "flip/renderer.h"
 #include "flip/utils/profile.h"
@@ -39,7 +40,6 @@ class ApplicationCb {
     sargs_setup(sargs_desc{.argc = _argc, .argv = _argv});
 
     auto app_cb = std::make_unique<ApplicationCb>();
-
     if (app_cb->headless_) {
       // Implement a basic headless loop
       app_cb->Init();
@@ -48,9 +48,8 @@ class ApplicationCb {
       }
       app_cb.release()->Cleanup();
     } else {
-      const auto& settings = app_cb->application_->settings();
-
       // Setup and run sapp
+      const auto& settings = app_cb->application_->settings();
       sapp_run(sapp_desc{
           .user_data = app_cb.release(),
           .init_userdata_cb =
@@ -175,8 +174,8 @@ class ApplicationCb {
       // Overloaded application display
       success &= application_->Display(*renderer_);
 
-      success &= renderer_->DrawGrids({&kIdentity4, 1}, 20);
-      success &= renderer_->DrawAxes({&kIdentity4, 1});
+      success &= renderer_->DrawGrid(kIdentity4, 20);
+      success &= renderer_->DrawAxis(kIdentity4);
 
       // Gui
       success &= application_->Gui();

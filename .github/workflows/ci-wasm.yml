@@ -11,7 +11,7 @@ permissions:
   id-token: write
 
 jobs:
-  build:
+  build-samples:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
@@ -19,12 +19,37 @@ jobs:
         submodules: recursive
     - name: Build
       run: ./em-build.sh
-    - name: Upload artifact
+    - name: Uploads artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: site-samples
+        path: build-wasm/site/
+  build-site:
+    needs: build-samples
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - name: Prepare sources
+      run: |
+        mkdir site-src
+        cp -R samples/site/* site-src
+    - name: Download samples artifact
+      uses: actions/download-artifact@v3
+      with:
+        name: site-samples
+        path: site-src
+    - name: Build
+      uses: actions/jekyll-build-pages@v1
+      with:
+        source: site-src
+        destination: site
+        verbose: true
+    - name: Upload pages artifact
       uses: actions/upload-pages-artifact@v2
       with:
-        path: build-wasm/site/
+        path: site
   deploy:
-    needs: build
+    needs: build-site
     runs-on: ubuntu-latest
     environment:
       name: github-pages

@@ -1,10 +1,13 @@
+set(FLIP_SITE "${PROJECT_BINARY_DIR}/site/")
+file(MAKE_DIRECTORY ${FLIP_SITE})
+
 function(target_emscripten _target)
   if(EMSCRIPTEN)
     set(FLIP_TARGET_NAME ${_target})
     configure_file("${PROJECT_SOURCE_DIR}/src/wasm.html" "${_target}.html")
     unset(FLIP_TARGET_NAME)
 
-    set(FLIP_TARGET_SITE "${PROJECT_BINARY_DIR}/site/${_target}/")
+    set(FLIP_TARGET_SITE "${FLIP_SITE}${_target}/")
     add_custom_command(TARGET ${_target} POST_BUILD
       COMMAND ${CMAKE_COMMAND} -E make_directory "media/" # in case it doesn't exist
       COMMAND ${CMAKE_COMMAND} -E make_directory "${FLIP_TARGET_SITE}"
