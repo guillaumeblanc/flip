@@ -1,6 +1,7 @@
 #pragma once
 
 #include "flip/camera.h"
+#include "sokol/sokol_app.h"
 
 namespace flip {
 
@@ -24,14 +25,18 @@ class OrbitCamera : public Camera {
   bool Pan(float _dx, float _dy);
   bool Move(float _dx, float _dy);
 
+  HMM_Vec2 last_touches_[SAPP_MAX_TOUCHPOINTS];
+
   const float kMinDist = 1.f;
   const float kMaxDist = 100.f;
   const float kMinLat = -kPi_2 * .95f;
   const float kMaxLat = kPi_2 * .95f;
   const float kOrbitFactor = .01f;
+  const float kOrbitTouchFactor = .3f;
   const float kPanFactor = .002f;
   const float kMoveFactor = .002f;
   const float kZoomFactor = .5f;
+  const float kZoomTouchFactor = .1f;
 
   float distance_ = 7.f;
   float latitude_ = 0.f;
