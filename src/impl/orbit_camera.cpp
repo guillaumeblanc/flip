@@ -6,7 +6,6 @@
 
 #include "flip/math.h"
 #include "imgui/imgui.h"
-#include "sokol/sokol_app.h"
 
 namespace flip {
 
@@ -106,6 +105,44 @@ bool OrbitCamera::Event(const sapp_event& _event) {
         } else {
           return Orbit(_event.mouse_dx, _event.mouse_dy);
         }
+      }
+      break;
+    case SAPP_EVENTTYPE_TOUCHES_BEGAN:
+      for (int i = 0; i < _event.num_touches; ++i) {
+        const auto& touch = _event.touches[i];
+        last_touches_[touch.identifier].X = touch.pos_x;
+        last_touches_[touch.identifier].Y = touch.pos_y;
+      }
+      break;
+    case SAPP_EVENTTYPE_TOUCHES_MOVED:
+      if (_event.num_touches == 1) {
+        const auto& touch = _event.touches[0];
+        const auto& last_touch = last_touches_[touch.identifier];
+        const auto mouse_offset =
+            HMM_Vec2{touch.pos_x - last_touch.X, touch.pos_y - last_touch.Y} *
+            kOrbitTouchFactor;
+        Orbit(mouse_offset.X, mouse_offset.Y);
+      } else if (_event.num_touches == 2) {
+        const auto& touch0 = _event.touches[0];
+        const auto& touch1 = _event.touches[1];
+
+        const auto v0 = HMM_Vec2{touch0.pos_x, touch0.pos_y};
+        const auto v1 = HMM_Vec2{touch1.pos_x, touch1.pos_y};
+
+        const auto& prev_v0 = last_touches_[touch0.identifier];
+        const auto& prev_v1 = last_touches_[touch1.identifier];
+
+        const float length0 = HMM_LenV2(v1 - v0);
+        const float length1 = HMM_LenV2(prev_v1 - prev_v0);
+
+        Zoom((length1 - length0) * kZoomTouchFactor);
+      }
+
+      // Updates all touch coords
+      for (int i = 0; i < _event.num_touches; ++i) {
+        const auto& touch = _event.touches[i];
+        last_touches_[touch.identifier].X = touch.pos_x;
+        last_touches_[touch.identifier].Y = touch.pos_y;
       }
       break;
     default:
