@@ -1,4 +1,6 @@
- ![](samples/media/flip_128.png)
+ ![](samples/media/flip_grey_256.png)
+
+ [Check live wasm samples](https://guillaumeblanc.github.io/flip/). 
 
 Flip is a multi-platform 3D programming library designed to simplify the development of basic 3d rendering and viewing applications.
 
