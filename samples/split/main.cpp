@@ -17,7 +17,7 @@ class Split : public flip::Application {
       const auto transform = HMM_Translate(HMM_Vec3{0, 6, 0}) *
                              HMM_Rotate_RH(1, HMM_Vec3{1, 1, 0}) *
                              HMM_Scale(HMM_Vec3{5, 5, 5});
-      _renderer.DrawShapes({&transform, 1}, flip::Renderer::kCube, _color);
+      _renderer.DrawShape(transform, flip::Renderer::kCube, _color);
     };
 
     auto [screen, left, div, right] = splits();
