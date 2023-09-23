@@ -121,9 +121,9 @@ class ApplicationCb {
 
   void Event(const sapp_event& _event) {
     bool captured = false;  // Only fw event if not captured
-    captured = !captured && renderer_->Event(_event);
-    captured = !captured && camera_->Event(_event);
-    captured = !captured && application_->Event(_event);
+    captured |= !captured && renderer_->Event(_event);
+    captured |= !captured && application_->Event(_event);
+    captured |= !captured && camera_->Event(_event);
   }
 
   void Frame() {
