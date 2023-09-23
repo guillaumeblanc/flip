@@ -7,6 +7,7 @@
 
 #include "flip/camera.h"
 #include "flip/renderer.h"
+#include "flip/utils/profile.h"
 #include "impl/factory.h"
 
 // Sokol library
@@ -15,6 +16,9 @@
 #include "sokol/sokol_fetch.h"
 #include "sokol/sokol_log.h"
 #include "sokol/sokol_time.h"
+
+// imgui
+#include "imgui/imgui.h"
 
 #ifdef __APPLE__
 #include <unistd.h>
@@ -128,6 +132,7 @@ class ApplicationCb {
 
   void Frame() {
     bool success = true;
+    bool exit = false;
 
     // Ticks fetching
     sfetch_dowork();
@@ -136,18 +141,23 @@ class ApplicationCb {
     const auto dt = static_cast<float>(stm_sec(stm_laptime(&last_time_)));
     const auto inv_dt = dt == 0.f ? 0.f : (1.f / dt);
     const auto time = static_cast<float>(stm_sec(last_time_));
+    profile_frame_.push(dt * 1e3f);
 
-    // Updates application
-    const auto control = application_->Update(time, dt, inv_dt);
-    success &= control != Application::LoopControl::kBreakFailure;
+    {  // Updates application
+      Profile profile(profile_update_);
+      const auto control = application_->Update(time, dt, inv_dt);
+      success &= control != Application::LoopControl::kBreakFailure;
+      exit = control != Application::LoopControl::kContinue;
+    }
 
     // Renders application
     if (!headless_) {
+      Profile profile(profile_render_);
       success &= Display(time, dt, inv_dt);
     }
 
     // Manages exit
-    if (!success || control != Application::LoopControl::kContinue) {
+    if (exit || !success) {
       RequestExit(success);
     }
   }
@@ -174,9 +184,44 @@ class ApplicationCb {
         success &= application_->Menu();
         success &= camera_->Menu();
         success &= renderer_->Menu();
+        success &= Menu();
       }
     }
     return success;
+  }
+
+  bool Menu() {
+    auto plot_all = [this]() {
+      auto plot = [](const char* _label, const auto& _rec) {
+        auto [data, offset] = _rec.view();
+        auto [min, mean, max] = stats(data);
+        char overlay[64];
+        std::snprintf(overlay, sizeof(overlay),
+                      "Min %.2g ms\nMean %.2g ms\nMax %.2g ms", min, mean, max);
+        ImGui::PlotLines(_label, data.data(), data.size(), offset, overlay, min,
+                         max, ImVec2{0, 80});
+      };
+
+      ImGui::LabelText("Frame rate", "%.0f fps", 1000 / profile_frame_.front());
+      plot("Update", profile_update_);
+      plot("Render", profile_render_);
+      plot("Frame", profile_frame_);
+    };
+
+    static bool pop_up = false;
+    if (ImGui::BeginMenu("Performance")) {
+      ImGui::MenuItem("Pop up", 0, &pop_up);
+      plot_all();
+      ImGui::EndMenu();
+    }
+    if (pop_up) {
+      ImGui::SetNextWindowSize(ImVec2(240, 320), ImGuiCond_Once);
+      if (ImGui::Begin("Performance", &pop_up, 0)) {
+        plot_all();
+      }
+      ImGui::End();
+    }
+    return true;
   }
 
   void RequestExit(bool _success) {
@@ -191,6 +236,11 @@ class ApplicationCb {
   std::unique_ptr<Renderer> renderer_;
   std::unique_ptr<Camera> camera_;
   std::unique_ptr<Application> application_;
+
+  // Proling
+  ProfileRecord profile_update_;
+  ProfileRecord profile_render_;
+  ProfileRecord profile_frame_;
 
   // Time management
   uint64_t last_time_ = 0;
