@@ -117,7 +117,7 @@ bool RendererImpl::Menu() {
     const int w = sapp_width(), h = sapp_height();
     ImGui::LabelText("Resolution", "%dx%d", w, h);
     const float dpi = sapp_dpi_scale();
-    ImGui::LabelText("DPI scale", "%.1g", dpi);
+    ImGui::LabelText("DPI scale", "%.2g", dpi);
     ImGui::EndMenu();
   }
 
