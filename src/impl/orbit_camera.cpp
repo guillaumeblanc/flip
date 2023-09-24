@@ -36,8 +36,8 @@ bool OrbitCamera::Menu() {
   return true;
 }
 
-bool OrbitCamera::Orbit(float _dx, float _dy) {
-  longitude_ -= _dx * kOrbitFactor;
+bool OrbitCamera::Orbit(const HMM_Vec2& _delta) {
+  longitude_ -= _delta.X;
 
   while (longitude_ < 0) {
     longitude_ += flip::k2Pi;
@@ -46,11 +46,11 @@ bool OrbitCamera::Orbit(float _dx, float _dy) {
     longitude_ -= flip::k2Pi;
   }
 
-  latitude_ = std::clamp(latitude_ + _dy * kOrbitFactor, kMinLat, kMaxLat);
+  latitude_ = std::clamp(latitude_ + _delta.Y, kMinLat, kMaxLat);
   return true;
 }
 
-bool OrbitCamera::Pan(float _dx, float _dy) {
+bool OrbitCamera::Pan(const HMM_Vec2& _delta) {
   const auto cln = cosf(longitude_);
   const auto sln = sinf(longitude_);
   const auto cla = cosf(latitude_);
@@ -59,11 +59,11 @@ bool OrbitCamera::Pan(float _dx, float _dy) {
   const auto left = HMM_NormV3(HMM_Vec3{-cln, 0, sln});
   const auto up = HMM_Vec3{-sla * sln, cla, -sla * cln};
 
-  camera_view_.center += (left * _dx + up * _dy) * kPanFactor * distance_;
+  camera_view_.center += (left * _delta.X + up * _delta.Y) * distance_;
   return true;
 }
 
-bool OrbitCamera::Move(float _dx, float _dy) {
+bool OrbitCamera::Move(const HMM_Vec2& _delta) {
   const auto cln = cosf(longitude_);
   const auto sln = sinf(longitude_);
   const auto cla = cosf(latitude_);
@@ -71,12 +71,12 @@ bool OrbitCamera::Move(float _dx, float _dy) {
   const auto left_h = HMM_NormV3(HMM_Vec3{-cln, 0, sln});
   const auto fw_h = HMM_NormV3(HMM_Vec3{sln, 0, -cln});
 
-  camera_view_.center += (left_h * _dx + fw_h * _dy) * kMoveFactor * distance_;
+  camera_view_.center += (left_h * _delta.X + fw_h * _delta.Y) * distance_;
   return true;
 }
 
 bool OrbitCamera::Zoom(float _d) {
-  distance_ = std::clamp(distance_ + _d * kZoomFactor, kMinDist, kMaxDist);
+  distance_ = std::clamp(distance_ + _d, kMinDist, kMaxDist);
   return true;
 }
 
@@ -93,25 +93,25 @@ bool OrbitCamera::Event(const sapp_event& _event) {
       }
       break;
     case SAPP_EVENTTYPE_MOUSE_SCROLL: {
-      Zoom(_event.scroll_y);
+      Zoom(_event.scroll_y * kZoomFactor);
       return true;
     }
     case SAPP_EVENTTYPE_MOUSE_MOVE:
       if (sapp_mouse_locked()) {
+        const auto delta = HMM_Vec2{_event.mouse_dx, _event.mouse_dy};
         if (_event.modifiers & SAPP_MODIFIER_CTRL) {
-          return Move(_event.mouse_dx, _event.mouse_dy);
+          return Move(delta * kMoveFactor);
         } else if (_event.modifiers & SAPP_MODIFIER_SHIFT) {
-          return Pan(_event.mouse_dx, _event.mouse_dy);
+          return Pan(delta * kPanFactor);
         } else {
-          return Orbit(_event.mouse_dx, _event.mouse_dy);
+          return Orbit(delta * kOrbitFactor);
         }
       }
       break;
     case SAPP_EVENTTYPE_TOUCHES_BEGAN:
       for (int i = 0; i < _event.num_touches; ++i) {
         const auto& touch = _event.touches[i];
-        last_touches_[touch.identifier].X = touch.pos_x;
-        last_touches_[touch.identifier].Y = touch.pos_y;
+        last_touches_[touch.identifier] = HMM_Vec2{touch.pos_x, touch.pos_y};
       }
       break;
     case SAPP_EVENTTYPE_TOUCHES_MOVED:
@@ -119,9 +119,8 @@ bool OrbitCamera::Event(const sapp_event& _event) {
         const auto& touch = _event.touches[0];
         const auto& last_touch = last_touches_[touch.identifier];
         const auto mouse_offset =
-            HMM_Vec2{touch.pos_x - last_touch.X, touch.pos_y - last_touch.Y} *
-            kOrbitTouchFactor;
-        Orbit(mouse_offset.X, mouse_offset.Y);
+            HMM_Vec2{touch.pos_x - last_touch.X, touch.pos_y - last_touch.Y};
+        Orbit(mouse_offset * kOrbitTouchFactor);
       } else if (_event.num_touches == 2) {
         const auto& touch0 = _event.touches[0];
         const auto& touch1 = _event.touches[1];
@@ -136,15 +135,14 @@ bool OrbitCamera::Event(const sapp_event& _event) {
 
         const auto m = (v1 + v0) / 2;
         const auto pm = (pv1 + pv0) / 2;
-        const auto dm = (m - pm) * kPanTouchFactor;
-        Pan(dm.X, dm.Y);
+        const auto dm = (m - pm);
+        Pan(dm * kPanTouchFactor);
       }
 
       // Updates all touch coords
       for (int i = 0; i < _event.num_touches; ++i) {
         const auto& touch = _event.touches[i];
-        last_touches_[touch.identifier].X = touch.pos_x;
-        last_touches_[touch.identifier].Y = touch.pos_y;
+        last_touches_[touch.identifier] = HMM_Vec2{touch.pos_x, touch.pos_y};
       }
       break;
     default:
