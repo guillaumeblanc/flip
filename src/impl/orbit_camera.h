@@ -32,12 +32,12 @@ class OrbitCamera : public Camera {
   const float kMinLat = -kPi_2 * .95f;
   const float kMaxLat = kPi_2 * .95f;
   const float kOrbitFactor = .01f;
-  const float kOrbitTouchFactor = .005f;
+  const float kOrbitTouchFactor = .001f;
   const float kPanFactor = .002f;
-  const float kPanTouchFactor = .01f;
-  const float kMoveFactor = .002f;
+  const float kPanTouchFactor = .0002f;
+  const float kMoveFactor = .001f;
   const float kZoomFactor = .2f;
-  const float kZoomTouchFactor = .02f;
+  const float kZoomTouchFactor = .005f;
 
   float distance_ = 7.f;
   float latitude_ = 0.f;
