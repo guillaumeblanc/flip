@@ -66,10 +66,9 @@ bool OrbitCamera::Pan(const HMM_Vec2& _delta) {
 bool OrbitCamera::Move(const HMM_Vec2& _delta) {
   const auto cln = cosf(longitude_);
   const auto sln = sinf(longitude_);
-  const auto cla = cosf(latitude_);
 
   const auto left_h = HMM_NormV3(HMM_Vec3{-cln, 0, sln});
-  const auto fw_h = HMM_NormV3(HMM_Vec3{sln, 0, -cln});
+  const auto fw_h = HMM_NormV3(HMM_Vec3{-sln, 0, -cln});
 
   camera_view_.center += (left_h * _delta.X + fw_h * _delta.Y) * distance_;
   return true;
