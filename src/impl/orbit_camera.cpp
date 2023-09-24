@@ -129,13 +129,15 @@ bool OrbitCamera::Event(const sapp_event& _event) {
         const auto v0 = HMM_Vec2{touch0.pos_x, touch0.pos_y};
         const auto v1 = HMM_Vec2{touch1.pos_x, touch1.pos_y};
 
-        const auto& prev_v0 = last_touches_[touch0.identifier];
-        const auto& prev_v1 = last_touches_[touch1.identifier];
+        const auto& pv0 = last_touches_[touch0.identifier];
+        const auto& pv1 = last_touches_[touch1.identifier];
 
-        const float length0 = HMM_LenV2(v1 - v0);
-        const float length1 = HMM_LenV2(prev_v1 - prev_v0);
+        Zoom((HMM_LenV2(pv1 - pv0) - HMM_LenV2(v1 - v0)) * kZoomTouchFactor);
 
-        Zoom((length1 - length0) * kZoomTouchFactor);
+        const auto m = (v1 + v0) / 2;
+        const auto pm = (pv1 + pv0) / 2;
+        const auto dm = (m - pm) * kPanTouchFactor;
+        Pan(dm.X, dm.Y);
       }
 
       // Updates all touch coords
