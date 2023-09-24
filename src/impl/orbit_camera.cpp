@@ -84,17 +84,17 @@ bool OrbitCamera::Event(const sapp_event& _event) {
     case SAPP_EVENTTYPE_MOUSE_DOWN:
       if (_event.mouse_button == SAPP_MOUSEBUTTON_LEFT) {
         sapp_lock_mouse(true);
+        return true;
       }
       break;
     case SAPP_EVENTTYPE_MOUSE_UP:
       if (_event.mouse_button == SAPP_MOUSEBUTTON_LEFT) {
         sapp_lock_mouse(false);
+        return true;
       }
-      break;
-    case SAPP_EVENTTYPE_MOUSE_SCROLL: {
+    case SAPP_EVENTTYPE_MOUSE_SCROLL:
       Zoom(_event.scroll_y * kZoomFactor);
       return true;
-    }
     case SAPP_EVENTTYPE_MOUSE_MOVE:
       if (sapp_mouse_locked()) {
         const auto delta = HMM_Vec2{_event.mouse_dx, _event.mouse_dy};
@@ -121,20 +121,18 @@ bool OrbitCamera::Event(const sapp_event& _event) {
             HMM_Vec2{touch.pos_x - last_touch.X, touch.pos_y - last_touch.Y};
         Orbit(mouse_offset * kOrbitTouchFactor);
       } else if (_event.num_touches == 2) {
-        const auto& touch0 = _event.touches[0];
-        const auto& touch1 = _event.touches[1];
+        const auto v0 =
+            HMM_Vec2{_event.touches[0].pos_x, _event.touches[0].pos_y};
+        const auto v1 =
+            HMM_Vec2{_event.touches[1].pos_x, _event.touches[1].pos_y};
+        const auto& pv0 = last_touches_[_event.touches[0].identifier];
+        const auto& pv1 = last_touches_[_event.touches[1].identifier];
 
-        const auto v0 = HMM_Vec2{touch0.pos_x, touch0.pos_y};
-        const auto v1 = HMM_Vec2{touch1.pos_x, touch1.pos_y};
-
-        const auto& pv0 = last_touches_[touch0.identifier];
-        const auto& pv1 = last_touches_[touch1.identifier];
-
+        // Pinch (distance change between two touch points)
         Zoom((HMM_LenV2(pv1 - pv0) - HMM_LenV2(v1 - v0)) * kZoomTouchFactor);
 
-        const auto m = (v1 + v0) / 2;
-        const auto pm = (pv1 + pv0) / 2;
-        const auto dm = (m - pm);
+        // Drag (movement from the middle of two touch points)
+        const auto dm = (v1 + v0 - pv1 - pv0) / 2;
         Pan(dm * kPanTouchFactor);
       }
 

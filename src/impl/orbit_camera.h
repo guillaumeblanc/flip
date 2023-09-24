@@ -34,7 +34,7 @@ class OrbitCamera : public Camera {
   const float kOrbitFactor = .01f;
   const float kOrbitTouchFactor = .001f;
   const float kPanFactor = .002f;
-  const float kPanTouchFactor = .0002f;
+  const float kPanTouchFactor = .0004f;
   const float kMoveFactor = .001f;
   const float kZoomFactor = .2f;
   const float kZoomTouchFactor = .005f;
