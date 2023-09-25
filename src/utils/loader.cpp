@@ -25,12 +25,12 @@ AsyncBuffer::AsyncBuffer(const char* _filename, const Completion& _completion,
       UserData{.buffer = new std::vector<std::byte>{},
                .completion = new AsyncBuffer::Completion{_completion}};
 
-  auto stream_buffer = malloc(_buffering_size);
+  auto scratch = malloc(_buffering_size);
   handle_ = sfetch_send(
       sfetch_request_t{.path = _filename,
                        .callback = &FetchCallback,
                        .chunk_size = static_cast<uint32_t>(_buffering_size),
-                       .buffer = {stream_buffer, _buffering_size},
+                       .buffer = {scratch, _buffering_size},
                        .user_data = SFETCH_RANGE(user_data)});
   assert(sfetch_handle_valid(handle_));
 }
@@ -40,7 +40,7 @@ AsyncBuffer::~AsyncBuffer() { sfetch_cancel(handle_); }
 void AsyncBuffer::FetchCallback(const sfetch_response_t* _reponse) {
   auto& user_data = *reinterpret_cast<UserData*>(_reponse->user_data);
 
-  if (_reponse->fetched && !_reponse->cancelled) {
+  if (_reponse->fetched) {
     auto& buffer = *user_data.buffer;
 
     // Append fetched data
@@ -50,14 +50,14 @@ void AsyncBuffer::FetchCallback(const sfetch_response_t* _reponse) {
     }
     const std::byte* stream = static_cast<const std::byte*>(_reponse->data.ptr);
     std::copy(stream, stream + _reponse->data.size,
-              buffer.begin() + _reponse->data_offset);
+              buffer.data() + _reponse->data_offset);
   }
 
   if (_reponse->finished) {
     if (_reponse->cancelled) {
-      // Cancellation must be checked first, because it means AsyncBuffer is
-      // delete and cannot be accessed.
+      // Silence...
     } else {
+      // Notifies completion
       (*user_data.completion)(!_reponse->failed, *user_data.buffer,
                               _reponse->path);
     }
