@@ -116,8 +116,8 @@ void Shapes::Initialize() {
 
   const auto sphere = sshape_sphere_t{
       .radius = .5f,
-      .slices = 36,
-      .stacks = 20,
+      .slices = 24,
+      .stacks = 12,
   };
   buf = sshape_build_sphere(&buf, &sphere);
   draws_[Renderer::Shape::kSphere] = to_range(sshape_element_range(&buf));
@@ -126,7 +126,7 @@ void Shapes::Initialize() {
   const auto cylinder = sshape_cylinder_t{
       .radius = .5f,
       .height = 1.f,
-      .slices = 36,
+      .slices = 24,
       .stacks = 1,
   };
   buf = sshape_build_cylinder(&buf, &cylinder);
@@ -136,8 +136,8 @@ void Shapes::Initialize() {
   const auto torus = sshape_torus_t{
       .radius = .4f,
       .ring_radius = .1f,
-      .sides = 18,
-      .rings = 36,
+      .sides = 12,
+      .rings = 24,
   };
   buf = sshape_build_torus(&buf, &torus);
   draws_[Renderer::Shape::kTorus] = to_range(sshape_element_range(&buf));
