@@ -1,3 +1,9 @@
+# Changes runtime output dir so resources can be accessed with a cross platform relative path
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG ".")
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE ".")
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_MINSIZEREL ".")
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELWITHDEBINFO ".")
+
 set(FLIP_SITE "${PROJECT_BINARY_DIR}/site/")
 file(MAKE_DIRECTORY ${FLIP_SITE})
 
