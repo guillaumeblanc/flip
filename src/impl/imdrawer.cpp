@@ -35,7 +35,7 @@ ImDrawer::ImDrawer() {
       "out vec4 frag_color;\n"
       "void main() {\n"
       "  frag_color = texture(tex, vertex_uv) * vertex_color;\n"
-      "  if(frag_color.a <= 0.) discard;\n"
+      "  if(frag_color.a <= .5) discard;\n"
       "}\n";
   shader_ = flip::MakeSgShader(shader_desc);
 
