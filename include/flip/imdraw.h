@@ -23,6 +23,8 @@ struct ImMode {
 
   // Blending
   bool blending = false;
+  bool alpha_test = false;
+  bool alpha_to_coverage = false;
 };
 
 struct ImVertex {

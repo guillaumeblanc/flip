@@ -9,7 +9,8 @@ namespace flip {
 inline bool operator==(ImMode const& _a, ImMode const& _b) noexcept {
   return _a.type == _b.type && _a.z_write == _b.z_write &&
          _a.z_compare == _b.z_compare && _a.cull_mode == _b.cull_mode &&
-         _a.blending == _b.blending;
+         _a.blending == _b.blending && _a.alpha_test == _b.alpha_test &&
+         _a.alpha_to_coverage == _b.alpha_to_coverage;
 }
 
 struct ModeHash {
@@ -17,7 +18,9 @@ struct ModeHash {
     auto hash = std::size_t(_mode.type) << 0 | std::size_t(_mode.z_write) << 3 |
                 std::size_t(_mode.z_compare) << 4 |
                 std::size_t(_mode.cull_mode) << 13 |
-                std::size_t(_mode.blending) << 15;
+                std::size_t(_mode.blending) << 15 |
+                std::size_t(_mode.alpha_test) << 16 |
+                std::size_t(_mode.alpha_to_coverage) << 17;
     return hash;
   }
 };
@@ -35,7 +38,9 @@ class ImDrawer {
  protected:
  private:
   std::unordered_map<ImMode, SgPipeline, ModeHash> pipelines_;
-  SgShader shader_;
+
+  // Shaders with / without alpha test enabled.
+  SgShader shaders_[2];
 
   SgDynamicBuffer buffer_;
 

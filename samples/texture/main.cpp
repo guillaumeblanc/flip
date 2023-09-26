@@ -26,7 +26,9 @@ class Texture : public flip::Application {
                                flip::kIdentity4,
                                {.type = SG_PRIMITIVETYPE_TRIANGLE_STRIP,
                                 .cull_mode = SG_CULLMODE_NONE,
-                                .blending = true}};
+                                .blending = true,
+                                .alpha_test = true,
+                                .alpha_to_coverage = true}};
 
     if (texture_) {
       drawer.texture(image_.id(), sampler_.id());

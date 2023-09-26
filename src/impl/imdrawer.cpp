@@ -28,6 +28,8 @@ ImDrawer::ImDrawer() {
   shader_desc.fs.samplers[0] = {.used = true};
   shader_desc.fs.image_sampler_pairs[0] = {
       .used = true, .image_slot = 0, .sampler_slot = 0, .glsl_name = "tex"};
+
+  // Without alpha test.
   shader_desc.fs.source = FS_VERSION
       "uniform sampler2D tex;\n"
       "in vec2 vertex_uv;\n"
@@ -35,9 +37,20 @@ ImDrawer::ImDrawer() {
       "out vec4 frag_color;\n"
       "void main() {\n"
       "  frag_color = texture(tex, vertex_uv) * vertex_color;\n"
-      "  if(frag_color.a <= .5) discard;\n"
       "}\n";
-  shader_ = flip::MakeSgShader(shader_desc);
+  shaders_[false] = flip::MakeSgShader(shader_desc);
+
+  // With alpha test (ie discard pixel).
+  shader_desc.fs.source = FS_VERSION
+      "uniform sampler2D tex;\n"
+      "in vec2 vertex_uv;\n"
+      "in vec4 vertex_color;\n"
+      "out vec4 frag_color;\n"
+      "void main() {\n"
+      "  frag_color = texture(tex, vertex_uv) * vertex_color;\n"
+      "  if(frag_color.a <= .3) discard;\n"
+      "}\n";
+  shaders_[true] = flip::MakeSgShader(shader_desc);
 
   // Image
   uint32_t pixels[] = {0xFFFFFFFF};  // Single white pixel
@@ -61,7 +74,7 @@ void ImDrawer::Begin(const HMM_Mat4& _view_proj, const HMM_Mat4& _transform,
   auto it = pipelines_.find(_mode);
   if (it == pipelines_.end()) {
     sg_pipeline pip = sg_make_pipeline(sg_pipeline_desc{
-        .shader = shader_.id(),
+        .shader = shaders_[_mode.alpha_test].id(),
         .layout = {.buffers = {{.stride = 36}},
                    .attrs = {{.format = SG_VERTEXFORMAT_FLOAT3},
                              {.format = SG_VERTEXFORMAT_FLOAT4},
@@ -75,6 +88,7 @@ void ImDrawer::Begin(const HMM_Mat4& _view_proj, const HMM_Mat4& _transform,
                     }}},
         .primitive_type = _mode.type,
         .cull_mode = _mode.cull_mode,
+        .alpha_to_coverage_enabled = _mode.alpha_to_coverage,
         .label = "flip: ImDrawer"});
     it = pipelines_.emplace(_mode, pip).first;
   }
