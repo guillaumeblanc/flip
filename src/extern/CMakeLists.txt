@@ -52,7 +52,6 @@ endif()
 
 if(UNIX AND NOT APPLE AND NOT EMSCRIPTEN)
     find_package(X11 REQUIRED)
-
     target_include_directories(sokol PRIVATE ${X11_INCLUDE_DIR})
     target_link_libraries(sokol ${X11_LIBRARIES} Xi Xcursor)
 endif()

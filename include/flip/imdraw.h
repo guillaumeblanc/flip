@@ -21,8 +21,8 @@ struct ImMode {
   // Culling
   sg_cull_mode cull_mode = SG_CULLMODE_BACK;
 
-  // Blending
-  bool blending = false;
+  // Alpha blending
+  bool alpha_blending = false;
   bool alpha_test = false;
   bool alpha_to_coverage = false;
 };

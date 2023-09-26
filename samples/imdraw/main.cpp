@@ -41,7 +41,7 @@ class ImDraw : public flip::Application {
                                  transform1_,
                                  {.type = SG_PRIMITIVETYPE_TRIANGLE_STRIP,
                                   .cull_mode = SG_CULLMODE_NONE,
-                                  .blending = true}};
+                                  .alpha_blending = true}};
 
       drawer.color(flip::kYellow, .7f);
 

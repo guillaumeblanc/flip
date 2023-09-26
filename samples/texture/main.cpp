@@ -26,9 +26,9 @@ class Texture : public flip::Application {
                                flip::kIdentity4,
                                {.type = SG_PRIMITIVETYPE_TRIANGLE_STRIP,
                                 .cull_mode = SG_CULLMODE_NONE,
-                                .blending = true,
-                                .alpha_test = true,
-                                .alpha_to_coverage = true}};
+                                .alpha_blending = alpha_blending_,
+                                .alpha_test = alpha_test_,
+                                .alpha_to_coverage = alpha_to_coverage_}};
 
     if (texture_) {
       drawer.texture(image_.id(), sampler_.id());
@@ -56,6 +56,9 @@ class Texture : public flip::Application {
       if (ImGui::Checkbox("Linear filtering", &linear_)) {
         sampler_ = SetupSampler(linear_);
       }
+      ImGui::Checkbox("Enable alpha alpha_blending", &alpha_blending_);
+      ImGui::Checkbox("Enable alpha test", &alpha_test_);
+      ImGui::Checkbox("Enable alpha to coverage", &alpha_to_coverage_);
       ImGui::ColorEdit4("Color", color_.rgba);
       ImGui::EndMenu();
     }
@@ -70,6 +73,9 @@ class Texture : public flip::Application {
   flip::Color color_ = flip::kYellow;
   bool texture_ = true;
   bool linear_ = true;
+  bool alpha_blending_ = true;
+  bool alpha_test_ = true;
+  bool alpha_to_coverage_ = true;
 };
 
 // Application instantiation function
