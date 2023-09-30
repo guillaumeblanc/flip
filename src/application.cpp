@@ -8,6 +8,7 @@
 #include "flip/camera.h"
 #include "flip/renderer.h"
 #include "flip/utils/profile.h"
+#include "flip/utils/time.h"
 #include "impl/factory.h"
 
 // Sokol library
@@ -138,14 +139,13 @@ class ApplicationCb {
     sfetch_dowork();
 
     // Updates time.
-    const auto dt = static_cast<float>(stm_sec(stm_laptime(&last_time_)));
-    const auto inv_dt = dt == 0.f ? 0.f : (1.f / dt);
-    const auto time = static_cast<float>(stm_sec(last_time_));
-    profile_frame_.push(dt * 1e3f);
+    const auto sys_dt = static_cast<float>(stm_sec(stm_laptime(&last_time_)));
+    profile_frame_.push(sys_dt * 1e3f);
+    const auto time = time_control_.Update(sys_dt);
 
     {  // Updates application
       Profile profile(profile_update_);
-      const auto control = application_->Update(time, dt, inv_dt);
+      const auto control = application_->Update(time);
       success &= control != Application::LoopControl::kBreakFailure;
       exit = control != Application::LoopControl::kContinue;
     }
@@ -153,7 +153,7 @@ class ApplicationCb {
     // Renders application
     if (!headless_) {
       Profile profile(profile_render_);
-      success &= Display(time, dt, inv_dt);
+      success &= Display(time);
     }
 
     // Manages exit
@@ -162,11 +162,11 @@ class ApplicationCb {
     }
   }
 
-  bool Display(float _time, float _dt, float _inv_dt) {
+  bool Display(const Time& _time) {
     assert(!headless_);
 
     bool success = true;
-    success &= camera_->Update(_time, _dt, _inv_dt);
+    success &= camera_->Update(_time);
 
     {  // Default Rendering pass raii
       auto pass = Renderer::DefaultPass(*renderer_, camera_->GetCameraView());
@@ -208,18 +208,16 @@ class ApplicationCb {
       plot("Frame", profile_frame_);
     };
 
-    static bool pop_up = false;
     if (ImGui::BeginMenu("Performance")) {
-      ImGui::MenuItem("Pop up", 0, &pop_up);
-      plot_all();
-      ImGui::EndMenu();
-    }
-    if (pop_up) {
-      ImGui::SetNextWindowSize(ImVec2(240, 320), ImGuiCond_Once);
-      if (ImGui::Begin("Performance", &pop_up, 0)) {
-        plot_all();
+      if (ImGui::TreeNodeEx("Time control")) {
+        time_control_.Gui();
+        ImGui::TreePop();
       }
-      ImGui::End();
+      if (ImGui::TreeNodeEx("Performance")) {
+        plot_all();
+        ImGui::TreePop();
+      }
+      ImGui::EndMenu();
     }
     return true;
   }
@@ -243,6 +241,7 @@ class ApplicationCb {
   ProfileRecord profile_frame_;
 
   // Time management
+  TimeControl time_control_;
   uint64_t last_time_ = 0;
 
   // Does application has a windows (head)

@@ -7,6 +7,8 @@ struct sapp_event;
 
 namespace flip {
 
+struct Time;
+
 // Camera view parameters, passed to the renderer.
 struct CameraView {
   float fov;
@@ -19,7 +21,7 @@ class Camera {
  public:
   virtual ~Camera() = default;
 
-  virtual bool Update(float _time, float _dt, float _inv_dt) { return true; }
+  virtual bool Update(const Time& _time) { return true; }
   virtual bool Event(const sapp_event& _event) { return false; }
   virtual bool Menu() { return true; }
 

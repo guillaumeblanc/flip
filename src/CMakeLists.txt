@@ -11,6 +11,7 @@ add_library(flip
   ${PROJECT_SOURCE_DIR}/include/flip/utils/loader.h
   ${PROJECT_SOURCE_DIR}/include/flip/utils/profile.h
   ${PROJECT_SOURCE_DIR}/include/flip/utils/sokol_gfx.h
+  ${PROJECT_SOURCE_DIR}/include/flip/utils/time.h
   application.cpp
   impl/imdrawer.h
   impl/imdrawer.cpp
@@ -28,6 +29,7 @@ add_library(flip
   utils/keyboard.cpp
   utils/loader.cpp
   utils/profile.cpp
-  utils/sokol_gfx.cpp)
+  utils/sokol_gfx.cpp
+  utils/time.cpp)
 target_include_directories(flip PUBLIC ${PROJECT_SOURCE_DIR}/include)
 target_link_libraries(flip sokol hmm stb_image)

@@ -2,6 +2,7 @@
 
 #include "flip/application.h"
 #include "flip/imdraw.h"
+#include "flip/utils/time.h"
 
 // Implement the minimal flip::Application.
 class ImDraw : public flip::Application {
@@ -9,13 +10,14 @@ class ImDraw : public flip::Application {
   ImDraw() : flip::Application(Settings{.title = "ImDraw"}) {}
 
  private:
-  virtual LoopControl Update(float _time, float _dt, float _inv_dt) override {
-    transform1_ = HMM_Rotate_RH(_time, HMM_Vec3{0, 1, 0}) *
+  virtual LoopControl Update(const flip::Time& _time) override {
+    auto elapsed = _time.elapsed;
+    transform1_ = HMM_Rotate_RH(elapsed, HMM_Vec3{0, 1, 0}) *
                   HMM_Translate(HMM_Vec3{0, 6, 0}) *
-                  HMM_Rotate_RH(HMM_PI / 4,
-                                HMM_Vec3{std::cos(_time), std::sin(_time), 0}) *
+                  HMM_Rotate_RH(HMM_PI / 4, HMM_Vec3{std::cos(elapsed),
+                                                     std::sin(elapsed), 0}) *
                   HMM_Scale(HMM_Vec3{3, 3, 3});
-    transform2_ = transform1_ * HMM_Rotate_RH(_time, HMM_Vec3{0, 1, 0});
+    transform2_ = transform1_ * HMM_Rotate_RH(elapsed, HMM_Vec3{0, 1, 0});
 
     return LoopControl::kContinue;
   }

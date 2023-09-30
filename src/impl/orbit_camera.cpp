@@ -9,7 +9,7 @@
 
 namespace flip {
 
-bool OrbitCamera::Update(float _time, float _dt, float _inv_dt) {
+bool OrbitCamera::Update(const Time& _time) {
   bool success = true;
 
   // Camera to eye vector
