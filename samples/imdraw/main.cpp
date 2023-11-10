@@ -53,6 +53,18 @@ class ImDraw : public flip::Application {
       drawer.vertex(1, -1, 0);
     }
 
+    // Red axis points
+    {
+      auto drawer = flip::ImDraw{
+          _renderer, transform1_, {.type = SG_PRIMITIVETYPE_POINTS}};
+
+      drawer.color(flip::kRed);
+      drawer.size(10.f);
+
+      drawer.vertex(0, 1, 0);
+      drawer.vertex(0, -1, 0);
+    }
+
     return true;
   }
 

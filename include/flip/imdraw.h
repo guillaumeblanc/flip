@@ -28,9 +28,10 @@ struct ImMode {
 };
 
 struct ImVertex {
-  HMM_Vec3 position = {0, 0, 0};
-  Color color = {1, 1, 1, 1};
-  HMM_Vec2 uv = {0, 0};
+  HMM_Vec3 position = {0, 0, 0};  // Vertex position
+  Color color = {1, 1, 1, 1};     // Vertex color
+  HMM_Vec2 uv = {0, 0};           // Vertex texture coordinate
+  float size = 1.f;               // Point size primitive
 };
 
 // RAII to begin/end an immediate mode draw
@@ -57,6 +58,7 @@ class ImDraw {
   void color(float _r, float _g, float _b, float _a) {
     vertex_.color = {_r, _g, _b, _a};
   }
+  void size(float _size) { vertex_.size = _size; }
 
   // Modifies current (internal) vertex and submit point.
   void vertex(const HMM_Vec3& _xyz) {
@@ -74,10 +76,25 @@ class ImDraw {
     Submit();
   }
 
+  void vertex(const HMM_Vec3& _xyz, const Color& _color, float _size) {
+    vertex_.position = _xyz;
+    vertex_.color = _color;
+    vertex_.size = _size;
+    Submit();
+  }
+
   void vertex(float _x, float _y, float _z, float _r, float _g, float _b,
               float _a) {
     vertex_.position = {_x, _y, _z};
     vertex_.color = {_r, _g, _b, _a};
+    Submit();
+  }
+
+  void vertex(float _x, float _y, float _z, float _r, float _g, float _b,
+              float _a, float _size) {
+    vertex_.position = {_x, _y, _z};
+    vertex_.color = {_r, _g, _b, _a};
+    vertex_.size = _size;
     Submit();
   }
 
@@ -93,18 +110,18 @@ class ImDraw {
     Submit();
   }
 
-  void vertex(const HMM_Vec3& _xyz, const HMM_Vec2& _uv, const Color& _color) {
+  void vertex(const HMM_Vec3& _xyz, const Color& _color, const HMM_Vec2& _uv) {
     vertex_.position = _xyz;
-    vertex_.uv = _uv;
     vertex_.color = _color;
+    vertex_.uv = _uv;
     Submit();
   }
 
-  void vertex(float _x, float _y, float _z, float _u, float _v, float _r,
-              float _g, float _b, float _a) {
+  void vertex(float _x, float _y, float _z, float _r, float _g, float _b,
+              float _a, float _u, float _v) {
     vertex_.position = {_x, _y, _z};
-    vertex_.uv = {_u, _v};
     vertex_.color = {_r, _g, _b, _a};
+    vertex_.uv = {_u, _v};
     Submit();
   }
 

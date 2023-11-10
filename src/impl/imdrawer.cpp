@@ -17,10 +17,12 @@ ImDrawer::ImDrawer() {
       "layout(location=0) in vec3 position;\n"
       "layout(location=1) in vec4 color;\n"
       "layout(location=2) in vec2 uv;\n"
+      "layout(location=3) in float size;\n"
       "out vec2 vertex_uv;\n"
       "out vec4 vertex_color;\n"
       "void main() {\n"
       "  gl_Position = mvp * vec4(position, 1.);\n"
+      "  gl_PointSize = size;\n"
       "  vertex_uv = uv;\n"
       "  vertex_color = color;\n"
       "}\n";
@@ -75,10 +77,11 @@ void ImDrawer::Begin(const HMM_Mat4& _view_proj, const HMM_Mat4& _transform,
   if (it == pipelines_.end()) {
     sg_pipeline pip = sg_make_pipeline(sg_pipeline_desc{
         .shader = shaders_[_mode.alpha_test].id(),
-        .layout = {.buffers = {{.stride = 36}},
+        .layout = {.buffers = {{.stride = sizeof(ImVertex)}},
                    .attrs = {{.format = SG_VERTEXFORMAT_FLOAT3},
                              {.format = SG_VERTEXFORMAT_FLOAT4},
-                             {.format = SG_VERTEXFORMAT_FLOAT2}}},
+                             {.format = SG_VERTEXFORMAT_FLOAT2},
+                             {.format = SG_VERTEXFORMAT_FLOAT}}},
         .depth = {.compare = _mode.z_compare, .write_enabled = _mode.z_write},
         .colors = {{.blend = {.enabled = _mode.alpha_blending,
                               .src_factor_rgb = SG_BLENDFACTOR_SRC_ALPHA,
@@ -96,7 +99,7 @@ void ImDrawer::Begin(const HMM_Mat4& _view_proj, const HMM_Mat4& _transform,
   sg_apply_pipeline(it->second.id());
 
   const auto mvp = _view_proj * _transform;
-  sg_apply_uniforms(SG_SHADERSTAGE_VS, 0, {mvp.Elements[0], 64});
+  sg_apply_uniforms(SG_SHADERSTAGE_VS, 0, {mvp.Elements[0], sizeof(mvp)});
 }
 
 void ImDrawer::End(std::span<const ImVertex> _vertices, sg_image _image,
