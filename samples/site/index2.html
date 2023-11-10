@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+<title>Flip samples</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+
+<body>
+
+    <div id="sidebar" class="w3-sidebar w3-bar-block w3-animate-left" style="display:none">
+        <button class="w3-bar-item w3-button w3-large" onclick="w3_close()">Close &times;</button>
+    </div>
+
+    <iframe class="w3-border-0" style="position:absolute; top:0; left: 0; width:100%; height: 100%;"
+        src="https://guillaumeblanc.github.io/flip/split/"></iframe>
+
+    <div class="w3-display-bottomleft" style="z-index:1;">
+        </span><button id="nav" class="w3-button w3-xlarge w3-text-white" onclick="w3_open()">&#9776;</button>
+    </div>
+
+    <script>
+        function w3_open() {
+            document.getElementById("main").style.marginLeft = "200px";
+            document.getElementById("sidebar").style.width = "200px";
+            document.getElementById("sidebar").style.display = "block";
+            document.getElementById("nav").style.display = 'none';
+        }
+        function w3_close() {
+            document.getElementById("main").style.marginLeft = "0%";
+            document.getElementById("sidebar").style.display = "none";
+            document.getElementById("nav").style.display = "inline-block";
+        }
+    </script>
+
+</body>
+
+</html>
