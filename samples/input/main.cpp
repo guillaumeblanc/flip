@@ -8,7 +8,7 @@ class Input : public flip::Application {
   Input() : flip::Application(Settings{.title = "Input"}) {}
 
  private:
-  virtual LoopControl Update(float _time, float _dt, float _inv_dt) override {
+  virtual LoopControl Update(const flip::Time& _time) override {
     if (keyboard_[SAPP_KEYCODE_Q].released()) {
       return LoopControl::kBreak;
     }

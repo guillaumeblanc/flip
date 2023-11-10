@@ -6,7 +6,8 @@
 // flip::Application implementation.
 namespace flip {
 class Application;
-}
+struct Time;
+}  // namespace flip
 extern std::unique_ptr<flip::Application> InstantiateApplication();
 
 // Sokol forward declaration
@@ -41,7 +42,7 @@ class Application {
  private:
   virtual bool Initialize(bool _headless) { return true; }
 
-  virtual LoopControl Update(float _time, float _dt, float _inv_dt) {
+  virtual LoopControl Update(const Time& _time) {
     return LoopControl::kContinue;
   }
 

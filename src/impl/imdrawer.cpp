@@ -80,7 +80,7 @@ void ImDrawer::Begin(const HMM_Mat4& _view_proj, const HMM_Mat4& _transform,
                              {.format = SG_VERTEXFORMAT_FLOAT4},
                              {.format = SG_VERTEXFORMAT_FLOAT2}}},
         .depth = {.compare = _mode.z_compare, .write_enabled = _mode.z_write},
-        .colors = {{.blend = {.enabled = _mode.blending,
+        .colors = {{.blend = {.enabled = _mode.alpha_blending,
                               .src_factor_rgb = SG_BLENDFACTOR_SRC_ALPHA,
                               .dst_factor_rgb =
                                   SG_BLENDFACTOR_ONE_MINUS_SRC_ALPHA

@@ -11,7 +11,7 @@ class OrbitCamera : public Camera {
   virtual ~OrbitCamera() = default;
 
  protected:
-  virtual bool Update(float _time, float _dt, float _inv_dt) override;
+  virtual bool Update(const Time& _time) override;
   virtual bool Event(const sapp_event& _event) override;
   virtual bool Menu() override;
 

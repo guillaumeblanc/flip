@@ -185,7 +185,7 @@ bool RendererImpl::DrawGrids(std::span<const HMM_Mat4> _transforms,
                            {.type = SG_PRIMITIVETYPE_TRIANGLE_STRIP,
                             .z_write = false,
                             .cull_mode = SG_CULLMODE_NONE,
-                            .blending = true}};
+                            .alpha_blending = true}};
 
       drawer.color(.5f, .7f, .8f, .6f);
       drawer.vertex(corner.X, corner.Y, corner.Z);
