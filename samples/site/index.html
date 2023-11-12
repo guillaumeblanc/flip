@@ -1,65 +1,89 @@
 <!DOCTYPE html>
-<html>
-<title>Flip samples</title>
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
-<link rel="stylesheet" href="https://www.w3schools.com/lib/w3-theme-indigo.css">
+<html lang="en">
 
-<body>
-    <div class="w3-container w3-theme">
-        <h1>Flip samples</h1>
+<head>
+    <title>Flip samples browser</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+    <script src="https://kit.fontawesome.com/8a163c7c46.js"></script>
+    <style>
+        html,
+        body {
+            height: 100%;
+            background-color: #242424;
+        }
+    </style>
+</head>
+
+<body class="w3-sans-serif w3-small w3-text-white">
+
+    <!-- Overlay -->
+    <div class="w3-overlay w3-animate-opacity" onclick="w3_close()" style="cursor:pointer" id="overlay_id"></div>
+
+    <!-- Sidebar -->
+    <div class="w3-sidebar w3-bar-block w3-text-black w3-animate-left" style="display:none;z-index:5" id="sidebar_id">
+        <a class="w3-bar-item w3-button" onclick="switch_sample('minimal');">Minimal</a>
+        <a class="w3-bar-item w3-button" onclick="switch_sample('imdraw');">ImDraw</a>
+        <a class="w3-bar-item w3-button" onclick="switch_sample('shapes');">Shapes</a>
+        <a class="w3-bar-item w3-button" onclick="switch_sample('input');">Input</a>
+        <a class="w3-bar-item w3-button" onclick="switch_sample('texture');">Texture</a>
+        <a class="w3-bar-item w3-button" onclick="switch_sample('split');">Split</a>
+        <a class="w3-bar-item w3-button" onclick="switch_sample('custom');">Custom</a>
     </div>
-    <table class="w3-table-all">
-        <tr>
-            <td>
-                <span class="w3-tag w3-green">Beginner</span>
-            </td>
-            <td><a href="minimal/">Minimal</a></td>
-            <td>Instantiates a minimal/empty application</td>
-        </tr>
-        <tr>
-            <td>
-                <span class="w3-tag w3-green">Beginner</span>
-            </td>
-            <td><a href="imdraw/">ImDraw</a></td>
-            <td>Showcases immediate mode rendering capabilities</td>
-        </tr>
-        <tr>
-            <td>
-                <span class="w3-tag w3-green">Beginner</span>
-            </td>
-            <td><a href="shapes/">Shapes</a></td>
-            <td>Showcases built-in shapes rendering capabilities</td>
-        </tr>
-        <tr>
-            <td>
-                <span class="w3-tag w3-green">Beginner</span>
-            </td>
-            <td><a href="input/">Input</a></td>
-            <td>Demonstrates reading keyboard inputs</td>
-        </tr>
-        <tr>
-            <td>
-                <span class="w3-tag w3-green">Beginner</span>
-            </td>
-            <td><a href="texture/">Texture</a></td>
-            <td>Loads a texture asynchronously.</td>
-        </tr>
-        <tr>
-            <td>
-                <span class="w3-tag w3-yellow">Intermediate</span>
-            </td>
-            <td><a href="split/">Split</a></td>
-            <td>Demonstrates a split screen implementation, using sokol api explicitly.</td>
-        </tr>
-        <tr>
-            <td>
-                <span class="w3-tag w3-red">Advanced</span>
-            </td>
-            <td><a href="custom/">Custom</a></td>
-            <td>Implements a custom shader and retained mode mesh, using sokol api explicitly.</td>
-        </tr>
-    </table>
+
+    <!-- Content -->
+    <div class="" style="display:flex;flex-flow:column;height:100%;">
+
+        <!-- Header -->
+        <div class="w3-bar">
+            <div class="w3-bar-item w3-button" onclick="w3_open()"><i class="fa fa-bars"></i></div>
+            <a class="w3-bar-item w3-button" id="sample_src_id"><i class="fab fa-github" aria-hidden="true"></i> <span
+                    id="sample_title_id"></span></a>
+            <a class="w3-bar-item w3-button w3-right" href="https://github.com/guillaumeblanc/flip"><i
+                    class="fab fa-github" aria-hidden="true"></i> Flip</a>
+        </div>
+
+        <!-- Frame -->
+        <div class="w3-display-container" style="width:100%;height:100%;">
+            <iframe id="sample_frame_id" class="w3-border-0" style="width:100%;height:100%;"></iframe>
+            <a href="href=" https://github.com/guillaumeblanc/flip""><img class="w3-display-bottomright w3-container"
+                    src="https://raw.githubusercontent.com/guillaumeblanc/flip/main/samples/media/flip_64.png"></img></a>
+        </div>
+        <!-- Footer -->
+        <div id="footer_id" class="w3-container w3-text-white"></div>
+    </div>
+    <script>
+        function w3_open() {
+            document.getElementById("sidebar_id").style.display = "block";
+            document.getElementById("overlay_id").style.display = "block";
+        }
+
+        function w3_close() {
+            document.getElementById("sidebar_id").style.display = "none";
+            document.getElementById("overlay_id").style.display = "none";
+        }
+
+        function switch_sample(name, description) {
+            var samples = {
+                "minimal": ["Minimal", "Instantiates a minimal/empty application"],
+                "imdraw": ["ImDraw", "Demonstrates immediate mode rendering capabilities"],
+                "shapes": ["Shapes", "Showcases built-in shapes rendering capabilities"],
+                "input": ["Input", "Demonstrates reading keyboard inputs"],
+                "texture": ["Texture", "Loads a texture asynchronously"],
+                "split": ["Split", "Demonstrates a split screen implementation, using sokol api explicitly"],
+                "custom": ["Custom", "Implements a custom shader and retained mode mesh, using sokol api explicitly"],
+            };
+
+            document.getElementById('sample_frame_id').src = "https://guillaumeblanc.github.io/flip/" + name;
+            document.getElementById('sample_title_id').innerHTML = samples[name][0];
+            document.getElementById('sample_src_id').href = "https://github.com/guillaumeblanc/flip/tree/main/samples/" + name + "/main.cpp";
+            document.getElementById('footer_id').innerHTML = samples[name][0] + " sample: " + samples[name][1];
+            w3_close();
+        }
+
+        // Default sample
+        switch_sample("shapes");
+    </script>
 </body>
 
 </html>
