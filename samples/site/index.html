@@ -46,11 +46,17 @@
         <!-- Frame -->
         <div class="w3-display-container" style="width:100%;height:100%;">
             <iframe id="sample_frame_id" class="w3-border-0" style="width:100%;height:100%;"></iframe>
-            <a href="href=" https://github.com/guillaumeblanc/flip""><img class="w3-display-bottomright w3-container"
-                    src="https://raw.githubusercontent.com/guillaumeblanc/flip/main/samples/media/flip_64.png"></img></a>
+            <a href="https://github.com/guillaumeblanc/flip"><img class="w3-display-bottomright w3-margin"
+                    src="https://raw.githubusercontent.com/guillaumeblanc/flip/main/samples/media/flip_white.svg"
+                    width="100em"></img></a>
         </div>
         <!-- Footer -->
-        <div id="footer_id" class="w3-container w3-text-white"></div>
+        <div class="w3-container">
+            <span id="level_0_id" class="w3-tag w3-round w3-green" style="display:none;">Beginner</span>
+            <span id="level_1_id" class="w3-tag w3-round w3-yellow" style="display:none;">Intermediate</span>
+            <span id="level_2_id" class="w3-tag w3-round w3-red" style="display:none;">Advanced</span>
+            <span id="footer_id" class=""></span>
+        </div>
     </div>
     <script>
         function w3_open() {
@@ -65,19 +71,25 @@
 
         function switch_sample(name, description) {
             var samples = {
-                "minimal": ["Minimal", "Instantiates a minimal/empty application"],
-                "imdraw": ["ImDraw", "Demonstrates immediate mode rendering capabilities"],
-                "shapes": ["Shapes", "Showcases built-in shapes rendering capabilities"],
-                "input": ["Input", "Demonstrates reading keyboard inputs"],
-                "texture": ["Texture", "Loads a texture asynchronously"],
-                "split": ["Split", "Demonstrates a split screen implementation, using sokol api explicitly"],
-                "custom": ["Custom", "Implements a custom shader and retained mode mesh, using sokol api explicitly"],
+                "minimal": ["Minimal", 0, "Instantiates a minimal/empty application"],
+                "imdraw": ["ImDraw", 0, "Demonstrates immediate mode rendering capabilities"],
+                "shapes": ["Shapes", 0, "Showcases built-in shapes rendering capabilities"],
+                "input": ["Input", 1, "Demonstrates reading keyboard inputs"],
+                "texture": ["Texture", 1, "Loads a texture asynchronously"],
+                "split": ["Split", 2, "Demonstrates a split screen implementation, using sokol api explicitly"],
+                "custom": ["Custom", 2, "Implements a custom shader and retained mode mesh, using sokol api explicitly"],
             };
 
             document.getElementById('sample_frame_id').src = "https://guillaumeblanc.github.io/flip/" + name;
             document.getElementById('sample_title_id').innerHTML = samples[name][0];
             document.getElementById('sample_src_id').href = "https://github.com/guillaumeblanc/flip/tree/main/samples/" + name + "/main.cpp";
-            document.getElementById('footer_id').innerHTML = samples[name][0] + " sample: " + samples[name][1];
+            document.getElementById('footer_id').innerHTML = samples[name][2];
+
+            var lvl = samples[name][1];
+            document.getElementById("level_0_id").style.display = lvl == 0 ? "inline-block" : "none";
+            document.getElementById("level_1_id").style.display = lvl == 1 ? "inline-block" : "none";
+            document.getElementById("level_2_id").style.display = lvl == 2 ? "inline-block" : "none";
+
             w3_close();
         }
 
