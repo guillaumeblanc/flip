@@ -23,6 +23,7 @@ Imgui::Imgui() {
   style.WindowBorderSize = 1.f;
   style.FrameBorderSize = 1.f;
   style.FrameRounding = 2.f;
+  style.FramePadding = ImVec2{4, 0};
 
   // Configuration
   auto& io = ImGui::GetIO();
